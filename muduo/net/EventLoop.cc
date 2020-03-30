@@ -31,6 +31,9 @@ namespace
 
     线程调用静态函数EventLoop::getEventLoopOfCurrentThread就可以获得当前线程的EventLoop对象的指针了
   */
+ //当前线程Eventloop　对象指针
+ //线程局部存储
+ //__thread 表示每个线程都有这个指针变量
 __thread EventLoop* t_loopInThisThread = 0;  
 
 const int kPollTimeMs = 10000;
@@ -79,7 +82,9 @@ EventLoop::EventLoop()
     wakeupChannel_(new Channel(this, wakeupFd_)),
     currentActiveChannel_(NULL)
 {
-  LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_;
+  //记录日志
+  LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_; 
+  //检查当前线程是否创建了eventloop 对象
   if (t_loopInThisThread) //如果该线程已经创建了eventloop　对象
   {
     LOG_FATAL << "Another EventLoop " << t_loopInThisThread
@@ -104,7 +109,7 @@ EventLoop::~EventLoop()
   ::close(wakeupFd_);
   t_loopInThisThread = NULL;
 }
-
+//事件循环，该函数不能跨线程调用,只能在创建该对象的线程中调用
 void EventLoop::loop()
 {
   assert(!looping_); //判断之前是否已经调用过 loop

@@ -83,7 +83,7 @@ class Channel : noncopyable
  private:
   static string eventsToString(int fd, int ev);
 
-  void update();
+  void update(); //
   void handleEventWithGuard(Timestamp receiveTime);
 
   static const int kNoneEvent;

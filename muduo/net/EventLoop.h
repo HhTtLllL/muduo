@@ -112,6 +112,7 @@ class EventLoop : noncopyable
       abortNotInLoopThread();
     }
   }
+  //判断当前线程是否为创建该对象的线程　　CurrentThread::tid() 获取当前线程
   bool isInLoopThread() const { return threadId_ == CurrentThread::tid(); }
   // bool callingPendingFunctors() const { return callingPendingFunctors_; }
   bool eventHandling() const { return eventHandling_; }
@@ -141,7 +142,7 @@ class EventLoop : noncopyable
   bool eventHandling_; /* atomic */    //enentHandling 是否正在处理event 事件
   bool callingPendingFunctors_; /* atomic */    //是否正在调用pendingFunctors_ 的函数对象
   int64_t iteration_;
-  const pid_t threadId_;  //记录当前对象属于那个线程
+  const pid_t threadId_;  //记录当前对象属于那个线程  --当前对象所属的线程ID
   Timestamp pollReturnTime_;
   std::unique_ptr<Poller> poller_;    //用来调用poll 或者 epool
   std::unique_ptr<TimerQueue> timerQueue_;
