@@ -33,9 +33,10 @@ class Poller;
 class TimerQueue;
 
 ///
-/// Reactor, at most one per thread.
+/// Reactor, at most one per thread. 每一个线程最多有一个
 ///
 /// This is an interface class, so don't expose too much details.
+//这是一个接口类，不需要暴露太多细节
 class EventLoop : noncopyable
 {
  public:
@@ -44,11 +45,9 @@ class EventLoop : noncopyable
   EventLoop();
   ~EventLoop();  // force out-line dtor, for std::unique_ptr members.
 
-  ///
   /// Loops forever.
-  ///
   /// Must be called in the same thread as creation of the object.
-  ///
+  ////必须在创建对象的同一线程中调用
   void loop();
 
   /// Quits loop.
@@ -106,7 +105,7 @@ class EventLoop : noncopyable
   bool hasChannel(Channel* channel);
 
   // pid_t threadId() const { return threadId_; }
-  void assertInLoopThread()
+  void assertInLoopThread()   //判断当前线程是否在I/O 线程中
   {
     if (!isInLoopThread())
     {
@@ -137,14 +136,14 @@ class EventLoop : noncopyable
 
   typedef std::vector<Channel*> ChannelList;
 
-  bool looping_; /* atomic */
-  std::atomic<bool> quit_;
-  bool eventHandling_; /* atomic */
-  bool callingPendingFunctors_; /* atomic */
+  bool looping_; /* atomic */   //是否正在执行loop循环
+  std::atomic<bool> quit_;  //是否已经调用quit()　函数退出loop 循环
+  bool eventHandling_; /* atomic */    //enentHandling 是否正在处理event 事件
+  bool callingPendingFunctors_; /* atomic */    //是否正在调用pendingFunctors_ 的函数对象
   int64_t iteration_;
-  const pid_t threadId_;
+  const pid_t threadId_;  //记录当前对象属于那个线程
   Timestamp pollReturnTime_;
-  std::unique_ptr<Poller> poller_;
+  std::unique_ptr<Poller> poller_;    //用来调用poll 或者 epool
   std::unique_ptr<TimerQueue> timerQueue_;
   int wakeupFd_;
   // unlike in TimerQueue, which is an internal class,
@@ -153,11 +152,11 @@ class EventLoop : noncopyable
   boost::any context_;
 
   // scratch variables
-  ChannelList activeChannels_;
-  Channel* currentActiveChannel_;
+  ChannelList activeChannels_;   //记录这激活事件的集合
+  Channel* currentActiveChannel_;  //当前正在处理的channel 事件
 
   mutable MutexLock mutex_;
-  std::vector<Functor> pendingFunctors_ GUARDED_BY(mutex_);
+  std::vector<Functor> pendingFunctors_  GUARDED_BY(mutex_);  //是当前线程要执行的任务的集合
 };
 
 }  // namespace net

@@ -1,4 +1,4 @@
-#include "examples/simple/discard/discard.h"
+#include "discard.h"
 
 #include "muduo/base/Logging.h"
 #include "muduo/net/EventLoop.h"

@@ -26,7 +26,12 @@ using namespace muduo::net;
 
 namespace
 {
-__thread EventLoop* t_loopInThisThread = 0;
+  /*
+    one loop per thread 以为着每个线程只能有一个Eventloop　对象，以后在创建就可以检查这个变量，如果已经赋值就说明当前线程已经创建过EventLoop对象了
+
+    线程调用静态函数EventLoop::getEventLoopOfCurrentThread就可以获得当前线程的EventLoop对象的指针了
+  */
+__thread EventLoop* t_loopInThisThread = 0;  
 
 const int kPollTimeMs = 10000;
 
@@ -62,12 +67,12 @@ EventLoop* EventLoop::getEventLoopOfCurrentThread()
 }
 
 EventLoop::EventLoop()
-  : looping_(false),
+  : looping_(false),    //是否进入了loop循环
     quit_(false),
     eventHandling_(false),
     callingPendingFunctors_(false),
     iteration_(0),
-    threadId_(CurrentThread::tid()),
+    threadId_(CurrentThread::tid()),  //将当前创建对象的线程ID初始化给　该对象
     poller_(Poller::newDefaultPoller(this)),
     timerQueue_(new TimerQueue(this)),
     wakeupFd_(createEventfd()),
@@ -75,7 +80,7 @@ EventLoop::EventLoop()
     currentActiveChannel_(NULL)
 {
   LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_;
-  if (t_loopInThisThread)
+  if (t_loopInThisThread) //如果该线程已经创建了eventloop　对象
   {
     LOG_FATAL << "Another EventLoop " << t_loopInThisThread
               << " exists in this thread " << threadId_;
@@ -102,7 +107,7 @@ EventLoop::~EventLoop()
 
 void EventLoop::loop()
 {
-  assert(!looping_);
+  assert(!looping_); //判断之前是否已经调用过 loop
   assertInLoopThread();
   looping_ = true;
   quit_ = false;  // FIXME: what if someone calls quit() before loop() ?
@@ -110,22 +115,23 @@ void EventLoop::loop()
 
   while (!quit_)
   {
-    activeChannels_.clear();
-    pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_);
+    activeChannels_.clear(); //清空激活事件集合
+    pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_); //pool_wait 或 epool_wait 阻塞在这里
     ++iteration_;
     if (Logger::logLevel() <= Logger::TRACE)
     {
       printActiveChannels();
     }
-    // TODO sort channel by priority
-    eventHandling_ = true;
+    // TODO sort channel by priority   按照优先级对事件集合排序
+    eventHandling_ = true; //将是否正在处理事件循环标志设为true
     for (Channel* channel : activeChannels_)
     {
       currentActiveChannel_ = channel;
-      currentActiveChannel_->handleEvent(pollReturnTime_);
+      currentActiveChannel_->handleEvent(pollReturnTime_);  //事件处理 I/O
     }
     currentActiveChannel_ = NULL;
-    eventHandling_ = false;
+    eventHandling_ = false;     //将是否正在处理事件循环标志设为false
+
     doPendingFunctors();
   }
 
@@ -251,10 +257,10 @@ void EventLoop::handleRead()
   }
 }
 
-void EventLoop::doPendingFunctors()
+void EventLoop::doPendingFunctors()//执行任务队列中的任务
 {
   std::vector<Functor> functors;
-  callingPendingFunctors_ = true;
+  callingPendingFunctors_ = true;//是否正在调用pendingFunctors_的函数对象。
 
   {
   MutexLockGuard lock(mutex_);
