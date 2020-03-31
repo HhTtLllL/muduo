@@ -55,14 +55,14 @@ void Channel::update()
   addedToLoop_ = true;
   loop_->updateChannel(this);
 }
-
+// 调用这个函数之前确保调用disableAll
 void Channel::remove()
 {
   assert(isNoneEvent());
   addedToLoop_ = false;
   loop_->removeChannel(this);
 }
-
+//当事件到来时,会调用 handleEvent
 void Channel::handleEvent(Timestamp receiveTime)
 {
   std::shared_ptr<void> guard;
@@ -84,6 +84,7 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
 {
   eventHandling_ = true;
   LOG_TRACE << reventsToString();
+  //POLLHUP 对方文件描述符的挂起      output only 
   if ((revents_ & POLLHUP) && !(revents_ & POLLIN))
   {
     if (logHup_)
@@ -92,20 +93,23 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
     }
     if (closeCallback_) closeCallback_();
   }
-
+//POLLNVAL 文件描述符没有打开,或者不是一个合法的文件描述符
   if (revents_ & POLLNVAL)
   {
     LOG_WARN << "fd = " << fd_ << " Channel::handle_event() POLLNVAL";
   }
-
+//错误事件
   if (revents_ & (POLLERR | POLLNVAL))
   {
     if (errorCallback_) errorCallback_();
   }
+  // POLLIN , POLLPRI  都为可读事件,,  POLLRDHUP 对等方关闭连接
   if (revents_ & (POLLIN | POLLPRI | POLLRDHUP))
   {
     if (readCallback_) readCallback_(receiveTime);
   }
+
+  //可写事件
   if (revents_ & POLLOUT)
   {
     if (writeCallback_) writeCallback_();
@@ -122,7 +126,7 @@ string Channel::eventsToString() const
 {
   return eventsToString(fd_, events_);
 }
-
+//用来调试
 string Channel::eventsToString(int fd, int ev)
 {
   std::ostringstream oss;

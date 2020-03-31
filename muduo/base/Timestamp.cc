@@ -16,6 +16,7 @@
 
 using namespace muduo;
 
+//static_assert()    编译时的断言  ,平时使用的 assert 运行时断言
 static_assert(sizeof(Timestamp) == sizeof(int64_t),
               "Timestamp is same size as int64_t");
 

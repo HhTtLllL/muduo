@@ -19,10 +19,16 @@ namespace muduo
 ///
 /// This class is immutable.
 /// It's recommended to pass it by value, since it's passed in register on x64.
-///
+//对象有两种语义,    -
+// 值语义 : 可以拷贝,拷贝之后与原对象脱离关系
+//  对象语义: 要么是不能拷贝的,要么是可以拷贝的,拷贝之后与原对象仍然存在一定的关系,
+//比如共享底层资源(要实现自己的拷贝构造函数)
+
+//            copyable    是一个空基类,标识类, 标识凡是继承copyable 的类 都是  值类型 ,可以拷贝的
 class Timestamp : public muduo::copyable,
                   public boost::equality_comparable<Timestamp>,
                   public boost::less_than_comparable<Timestamp>
+                  // less_than_comparable  --只需要实现 < ,可以自动实现(推倒)    >,  <=  ,>= .
 {
  public:
   ///
