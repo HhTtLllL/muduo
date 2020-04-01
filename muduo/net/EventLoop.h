@@ -100,8 +100,8 @@ class EventLoop : noncopyable
 
   // internal usage
   void wakeup();
-  void updateChannel(Channel* channel);
-  void removeChannel(Channel* channel);
+  void updateChannel(Channel* channel);      //从Poller 中添加(注册)或者更新通道（事件）
+  void removeChannel(Channel* channel);      //从Poller中移除通道
   bool hasChannel(Channel* channel);
 
   // pid_t threadId() const { return threadId_; }
@@ -143,8 +143,8 @@ class EventLoop : noncopyable
   bool callingPendingFunctors_; /* atomic */    //是否正在调用pendingFunctors_ 的函数对象
   int64_t iteration_;
   const pid_t threadId_;  //记录当前对象属于那个线程  --当前对象所属的线程ID
-  Timestamp pollReturnTime_;
-  std::unique_ptr<Poller> poller_;    //用来调用poll 或者 epool
+  Timestamp pollReturnTime_;  //调用poll 函数返回的时间戳
+  std::unique_ptr<Poller> poller_;    //用来调用poll 或者 epool    生成期由EventLoop 控制
   std::unique_ptr<TimerQueue> timerQueue_;
   int wakeupFd_;
   // unlike in TimerQueue, which is an internal class,
@@ -153,8 +153,8 @@ class EventLoop : noncopyable
   boost::any context_;
 
   // scratch variables
-  ChannelList activeChannels_;   //记录这激活事件的集合
-  Channel* currentActiveChannel_;  //当前正在处理的channel 事件
+  ChannelList activeChannels_;   //记录这激活事件的集合　　　　Poller 返回的活动通道
+  Channel* currentActiveChannel_;  //当前正在处理的channel 事件　　当前正在处理的活动通道
 
   mutable MutexLock mutex_;
   std::vector<Functor> pendingFunctors_  GUARDED_BY(mutex_);  //是当前线程要执行的任务的集合

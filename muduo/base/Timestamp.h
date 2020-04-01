@@ -68,7 +68,9 @@ class Timestamp : public muduo::copyable,
   ///
   /// Get time of now.
   ///
+  // 获取当前时间
   static Timestamp now();
+  //获取一个无效的时间
   static Timestamp invalid()
   {
     return Timestamp();
@@ -83,11 +85,12 @@ class Timestamp : public muduo::copyable,
   {
     return Timestamp(static_cast<int64_t>(t) * kMicroSecondsPerSecond + microseconds);
   }
-
+//  一微秒 等于 百万分之1 秒, 1000*1000  等于一百万
   static const int kMicroSecondsPerSecond = 1000 * 1000;
 
  private:
-  int64_t microSecondsSinceEpoch_;
+ //linux 和 类unix 从 1970-01-01  00:00:00  开始计时     86400 秒
+  int64_t microSecondsSinceEpoch_;  //用来记录时间(微秒数)
 };
 
 inline bool operator<(Timestamp lhs, Timestamp rhs)
@@ -107,6 +110,7 @@ inline bool operator==(Timestamp lhs, Timestamp rhs)
 /// @return (high-low) in seconds
 /// @c double has 52-bit precision, enough for one-microsecond
 /// resolution for next 100 years.
+//计算两个时间的差
 inline double timeDifference(Timestamp high, Timestamp low)
 {
   int64_t diff = high.microSecondsSinceEpoch() - low.microSecondsSinceEpoch();
@@ -118,9 +122,11 @@ inline double timeDifference(Timestamp high, Timestamp low)
 ///
 /// @return timestamp+seconds as Timestamp
 ///
+//在一个时间的基础上 加上 多少秒
 inline Timestamp addTime(Timestamp timestamp, double seconds)
 {
-  int64_t delta = static_cast<int64_t>(seconds * Timestamp::kMicroSecondsPerSecond);
+  //现将秒 转化为 微秒
+  int64_t delta = static_cast<int64_t>(seconds * Timestamp::kMicroSecondsPerSecond);  
   return Timestamp(timestamp.microSecondsSinceEpoch() + delta);
 }
 

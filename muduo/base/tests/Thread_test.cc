@@ -51,7 +51,9 @@ class Foo
 
 int main()
 {
+  //获取当前线程的tid
   printf("pid=%d, tid=%d\n", ::getpid(), muduo::CurrentThread::tid());
+
 
   muduo::Thread t1(threadFunc);
   t1.start();

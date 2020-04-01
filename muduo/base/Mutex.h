@@ -238,6 +238,7 @@ class SCOPED_CAPABILITY MutexLockGuard : noncopyable
 // Prevent misuse like:
 // MutexLockGuard(mutex_);
 // A tempory object doesn't hold the lock for long!
+//不能使用 匿名对象,  因为一个匿名对象不能长时间拥有锁
 #define MutexLockGuard(x) error "Missing guard object name"
 
 #endif  // MUDUO_BASE_MUTEX_H

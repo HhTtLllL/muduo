@@ -113,7 +113,9 @@ EventLoop::~EventLoop()
 void EventLoop::loop()
 {
   assert(!looping_); //判断之前是否已经调用过 loop
-  assertInLoopThread();
+ 
+ //断言当前处于创建该对象的线程中
+  assertInLoopThread(); 
   looping_ = true;
   quit_ = false;  // FIXME: what if someone calls quit() before loop() ?
   LOG_TRACE << "EventLoop " << this << " start looping";
@@ -121,18 +123,18 @@ void EventLoop::loop()
   while (!quit_)
   {
     activeChannels_.clear(); //清空激活事件集合
-    pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_); //pool_wait 或 epool_wait 阻塞在这里
+    pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_); //pool_wait 或 epool_wait 阻塞在这里,  调用poll返回活动的通道
     ++iteration_;
     if (Logger::logLevel() <= Logger::TRACE)
     {
-      printActiveChannels();
+      printActiveChannels();//打印活动的通道 日志
     }
     // TODO sort channel by priority   按照优先级对事件集合排序
     eventHandling_ = true; //将是否正在处理事件循环标志设为true
     for (Channel* channel : activeChannels_)
     {
-      currentActiveChannel_ = channel;
-      currentActiveChannel_->handleEvent(pollReturnTime_);  //事件处理 I/O
+      currentActiveChannel_ = channel;   //设置当前活动通道
+      currentActiveChannel_->handleEvent(pollReturnTime_);  //处理活动    事件处理 I/O
     }
     currentActiveChannel_ = NULL;
     eventHandling_ = false;     //将是否正在处理事件循环标志设为false

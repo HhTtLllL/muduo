@@ -22,7 +22,7 @@ class Thread : noncopyable
  public:
   typedef std::function<void ()> ThreadFunc;
 
-//线程名称具有默认参数
+//线程名称具有默认参数  , 空的字符串类
   explicit Thread(ThreadFunc, const string& name = string());
   // FIXME: make it movable in C++11
   ~Thread();

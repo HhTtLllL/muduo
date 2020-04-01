@@ -32,15 +32,21 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::start(int numThreads)
 {
+  //先判断线程池中的线程为 空 
   assert(threads_.empty());
   running_ = true;
+
+  //预先准备空间
   threads_.reserve(numThreads);
   for (int i = 0; i < numThreads; ++i)
   {
     char id[32];
     snprintf(id, sizeof id, "%d", i+1);
+  // runInThread  启动
     threads_.emplace_back(new muduo::Thread(
           std::bind(&ThreadPool::runInThread, this), name_+id));
+
+          
     threads_[i]->start();
   }
   if (numThreads == 0 && threadInitCallback_)
@@ -70,6 +76,7 @@ size_t ThreadPool::queueSize() const
 
 void ThreadPool::run(Task task)
 {
+  //如果线程池为空, 就不用添加至 任务队列, 直接 执行这个任务 
   if (threads_.empty())
   {
     task();
@@ -92,10 +99,13 @@ ThreadPool::Task ThreadPool::take()
 {
   MutexLockGuard lock(mutex_);
   // always use a while-loop, due to spurious wakeup
+  //如果任务队列为空 并且 在运行态
   while (queue_.empty() && running_)
   {
+    //等待任务
     notEmpty_.wait();
   }
+
   Task task;
   if (!queue_.empty())
   {
@@ -125,9 +135,11 @@ void ThreadPool::runInThread()
     }
     while (running_)
     {
+      //获取 任务
       Task task(take());
       if (task)
       {
+        //执行任务, task  是一个函数
         task();
       }
     }

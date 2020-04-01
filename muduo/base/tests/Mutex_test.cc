@@ -47,9 +47,11 @@ int main()
     abort();
   }
 
+//最多 8 个线程
   const int kMaxThreads = 8;
+  //预留空间
   g_vec.reserve(kMaxThreads * kCount);
-
+//等级一个时间戳
   Timestamp start(Timestamp::now());
   for (int i = 0; i < kCount; ++i)
   {
@@ -58,7 +60,9 @@ int main()
 
   printf("single thread without lock %f\n", timeDifference(Timestamp::now(), start));
 
+//再次登记 时间 
   start = Timestamp::now();
+
   threadFunc();
   printf("single thread with lock %f\n", timeDifference(Timestamp::now(), start));
 

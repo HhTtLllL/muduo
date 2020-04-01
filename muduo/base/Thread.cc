@@ -44,10 +44,20 @@ class ThreadNameInitializer
   {
     muduo::CurrentThread::t_threadName = "main";
     CurrentThread::tid();
+    /*
+    pthread_atfork  的作用
+
+    函数接受三个函数作为参数 
+    pthread_atfork(void (*prepare)(void ), void (*parent)(void) , void (*child)(void));
+
+    调用fork时,内部创建子进程前在父进程中会调用 prepare,内部创建子进程成功后,父进程会调用parent,子进程会调用child
+    */
     pthread_atfork(NULL, NULL, &afterFork);
   }
 };
 
+//这个对象的构造先于 main ,也就是说一开始就进入构造函数中,然后将线程的名称等于main,也就是说主线程名称为 main,
+//然后缓存当前线程的tid,然后调用 pthread_atfork,然后在子进程中调用 afterfork
 ThreadNameInitializer init;
 
 struct ThreadData

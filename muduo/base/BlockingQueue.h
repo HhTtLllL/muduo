@@ -11,7 +11,7 @@
 
 #include <deque>
 #include <assert.h>
-
+//  队列事件:     无界缓冲区   无界--内容无上限
 namespace muduo
 {
 
@@ -33,14 +33,17 @@ class BlockingQueue : noncopyable
     notEmpty_.notify(); // wait morphing saves us
     // http://www.domaigne.com/blog/computing/condvars-signal-with-mutex-locked-or-not/
   }
-
+//生产产品
   void put(T&& x)
   {
     MutexLockGuard lock(mutex_);
     queue_.push_back(std::move(x));
+
+    //每次生产 产品后,意味着不为空,通知消费者不为空
     notEmpty_.notify();
   }
 
+//消费产品
   T take()
   {
     MutexLockGuard lock(mutex_);

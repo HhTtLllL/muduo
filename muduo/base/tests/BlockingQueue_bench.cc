@@ -25,7 +25,8 @@ class Bench
     }
     for (auto& thr : threads_)
     {
-      thr->start();
+      // 调用回调函数
+      thr->start(); 
     }
   }
 

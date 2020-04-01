@@ -35,25 +35,32 @@ class Singleton : noncopyable
   Singleton() = delete;
   ~Singleton() = delete;
 
+// 返回单例对象
   static T& instance()
   {
+    //pthread_once 能够保证 init 只创建一次
     pthread_once(&ponce_, &Singleton::init);
     assert(value_ != NULL);
     return *value_;
   }
 
  private:
+ //初始化一个单例对象
   static void init()
   {
     value_ = new T();
     if (!detail::has_no_destroy<T>::value)
     {
+      //登记了一个销毁函数   
+      //在程序结束的时候,调用这个函数,所以就不需要手工销毁对象
       ::atexit(destroy);
     }
   }
 
   static void destroy()
   {
+    //检测 类是一个完整类型的类型, 在编译处检查
+    //定义了一个数组,如果是不完整类型的变量, 则令值为  -1, 在编译处 会报错
     typedef char T_must_be_complete_type[sizeof(T) == 0 ? -1 : 1];
     T_must_be_complete_type dummy; (void) dummy;
 
@@ -62,6 +69,7 @@ class Singleton : noncopyable
   }
 
  private:
+ //pthread_once   能够保证一个函数只被执行一次
   static pthread_once_t ponce_;
   static T*             value_;
 };

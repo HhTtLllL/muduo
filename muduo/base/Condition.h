@@ -34,6 +34,7 @@ class Condition : noncopyable
   }
 
   // returns true if time out, false otherwise.
+  //可以等待一段时间
   bool waitForSeconds(double seconds);
 //  相当于 signal 函数
   void notify()

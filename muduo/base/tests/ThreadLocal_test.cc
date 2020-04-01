@@ -23,7 +23,7 @@ class Test : muduo::noncopyable
  private:
   muduo::string name_;
 };
-
+//定义两个线程特定数据对象,每个线程都有这两个对象
 muduo::ThreadLocal<Test> testObj1;
 muduo::ThreadLocal<Test> testObj2;
 
@@ -49,13 +49,18 @@ void threadFunc()
 
 int main()
 {
+  //设置主线程 one
   testObj1.value().setName("main one");
   print();
+
   muduo::Thread t1(threadFunc);
   t1.start();
   t1.join();
+
+//设置主线程 two
   testObj2.value().setName("main two");
+ 
   print();
 
-  pthread_exit(0);
+  pthread_exit(0);// 退出主线程
 }

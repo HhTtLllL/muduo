@@ -26,13 +26,14 @@ class Test : muduo::noncopyable
   muduo::string name_;
 };
 
+//ThreadLocal<Test>  这个对象是单例的
 #define STL muduo::Singleton<muduo::ThreadLocal<Test> >::instance().value()
 
 void print()
 {
   printf("tid=%d, %p name=%s\n",
          muduo::CurrentThread::tid(),
-         &STL,
+         &STL,  //单例对象的地址
          STL.name().c_str());
 }
 
@@ -46,6 +47,7 @@ void threadFunc(const char* changeTo)
 
 int main()
 {
+  //STL 是一个单例
   STL.setName("main one");
   muduo::Thread t1(std::bind(threadFunc, "thread1"));
   muduo::Thread t2(std::bind(threadFunc, "thread2"));

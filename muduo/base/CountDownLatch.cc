@@ -8,8 +8,8 @@
 using namespace muduo;
 
 CountDownLatch::CountDownLatch(int count)
-  : mutex_(),
-    condition_(mutex_),
+  : mutex_(),   //构造一个 mutex_ 对象
+    condition_(mutex_),  //condition   不负责mutex_ 的生存期
     count_(count)
 {
 }
@@ -25,10 +25,11 @@ void CountDownLatch::wait()
 
 void CountDownLatch::countDown()
 {
-  MutexLockGuard lock(mutex_);
+  MutexLockGuard lock(mutex_); //需要保护 count 变量
   --count_;
   if (count_ == 0)
   {
+    //通知所有的等待线程
     condition_.notifyAll();
   }
 }
