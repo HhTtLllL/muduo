@@ -122,8 +122,9 @@ class CAPABILITY("mutex") MutexLock : noncopyable
 {
  public:
   MutexLock()
-    : holder_(0)
+    : holder_(0) // holder_ 等于 0 为这个锁没有被任何一个线程拥有 
   {
+    //初始化一个锁
     MCHECK(pthread_mutex_init(&mutex_, NULL));
   }
 
@@ -134,26 +135,30 @@ class CAPABILITY("mutex") MutexLock : noncopyable
   }
 
   // must be called when locked, i.e. for assertion
+ //是否当前线程拥有该锁
   bool isLockedByThisThread() const
   {
     return holder_ == CurrentThread::tid();
   }
-
+//断言当前线程拥有该锁
   void assertLocked() const ASSERT_CAPABILITY(this)
   {
     assert(isLockedByThisThread());
   }
 
   // internal usage
-
+//加锁
   void lock() ACQUIRE()
   {
     MCHECK(pthread_mutex_lock(&mutex_));
+
+    //将当前线程 ID(tid)  赋值给holder_
     assignHolder();
   }
-
+//解锁
   void unlock() RELEASE()
   {
+    //将当前holder_ 的值 设为 0
     unassignHolder();
     MCHECK(pthread_mutex_unlock(&mutex_));
   }
@@ -207,6 +212,9 @@ class CAPABILITY("mutex") MutexLock : noncopyable
 class SCOPED_CAPABILITY MutexLockGuard : noncopyable
 {
  public:
+ /*
+  explicit : 指定构造函数或者转换函数,或推导函数 为显示, 即不能用于隐世转换和复制 初始化
+ */
   explicit MutexLockGuard(MutexLock& mutex) ACQUIRE(mutex)
     : mutex_(mutex)
   {
@@ -219,7 +227,9 @@ class SCOPED_CAPABILITY MutexLockGuard : noncopyable
   }
 
  private:
-
+/* 
+      注意: 这里使用的引用,所以这个类并不管理 mutex_ 的生存期, 两个类的关系为  关联关系
+*/
   MutexLock& mutex_;
 };
 

@@ -92,6 +92,11 @@ class AtomicIntegerT : noncopyable
   }
 
  private:
+ //volatile的作用,作为指令关键字,确保本条指令不会因编译器的优化而省略,且要求每次直接读值.简单地说就是防止
+ //编译器对代码进行优化
+
+ //当要求使用 volatile 声明的变量的值的时候,系统总是重新从它所在的内存读取数据,而不是使用保存在寄存器中的备份.
+ //即使它前面的指令刚刚从该出读取过数据,而且读取的数据立刻被保存.
   volatile T value_;
 };
 }  // namespace detail

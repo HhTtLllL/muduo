@@ -76,6 +76,7 @@ inline void memZero(void* p, size_t n)
 // implicit_cast would have been part of the C++ standard library,
 // but the proposal was submitted too late.  It will probably make
 // its way into the language in the future.
+//隐式转型
 template<typename To, typename From>
 inline To implicit_cast(From const &f)
 {
@@ -100,6 +101,7 @@ inline To implicit_cast(From const &f)
 //    if (dynamic_cast<Subclass2>(foo)) HandleASubclass2Object(foo);
 // You should design the code some other way not to need this.
 
+//向下转型
 template<typename To, typename From>     // use like this: down_cast<T*>(foo);
 inline To down_cast(From* f)                     // so we only accept pointers
 {

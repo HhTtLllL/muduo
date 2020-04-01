@@ -22,30 +22,35 @@ class Thread : noncopyable
  public:
   typedef std::function<void ()> ThreadFunc;
 
+//线程名称具有默认参数
   explicit Thread(ThreadFunc, const string& name = string());
   // FIXME: make it movable in C++11
   ~Thread();
 
-  void start();
+  void start();  //启动线程
   int join(); // return pthread_join()
 
-  bool started() const { return started_; }
+//是否已经启动
+  bool started() const { return started_; } 
   // pthread_t pthreadId() const { return pthreadId_; }
+  //线程真实 pid
   pid_t tid() const { return tid_; }
+  
+  //线程名称
   const string& name() const { return name_; }
-
+//已经启动线程个数
   static int numCreated() { return numCreated_.get(); }
 
  private:
   void setDefaultName();
 
-  bool       started_;
+  bool       started_; //线程是否已经启动
   bool       joined_;
   pthread_t  pthreadId_;
-  pid_t      tid_;
-  ThreadFunc func_;
-  string     name_;
-  CountDownLatch latch_;
+  pid_t      tid_;  //线程真实 id
+  ThreadFunc func_;  //线程回调函数
+  string     name_; //线程名称
+  CountDownLatch latch_;  //已经创建的线程的个数   原子整数类
 
   static AtomicInt32 numCreated_;
 };

@@ -62,7 +62,7 @@ class Poller : noncopyable
   ChannelMap channels_;
 
  private:
-  EventLoop* ownerLoop_;
+  EventLoop* ownerLoop_;  //poller 会记录它所登记的 EVentLoop
 };
 
 }  // namespace net

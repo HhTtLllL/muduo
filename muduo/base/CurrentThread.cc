@@ -23,9 +23,10 @@ string stackTrace(bool demangle)
 {
   string stack;
   const int max_frames = 200;
-  void* frame[max_frames];
+  void* frame[max_frames]; //指针数组,用来保存地址
+  //取出地址
   int nptrs = ::backtrace(frame, max_frames);
-  char** strings = ::backtrace_symbols(frame, nptrs);
+  char** strings = ::backtrace_symbols(frame, nptrs); //将地址转换为函数名称返回
   if (strings)
   {
     size_t len = 256;
@@ -64,6 +65,7 @@ string stackTrace(bool demangle)
         }
       }
       // Fallback to mangled names
+      //将函数名入栈
       stack.append(strings[i]);
       stack.push_back('\n');
     }

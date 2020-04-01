@@ -25,6 +25,7 @@ namespace detail
 
 pid_t gettid()
 {
+  //用系统调用来获取
   return static_cast<pid_t>(::syscall(SYS_gettid));
 }
 
@@ -69,11 +70,12 @@ struct ThreadData
 
   void runInThread()
   {
+    //获取线程的tid
     *tid_ = muduo::CurrentThread::tid();
     tid_ = NULL;
     latch_->countDown();
     latch_ = NULL;
-
+//将线程名称缓存起来
     muduo::CurrentThread::t_threadName = name_.empty() ? "muduoThread" : name_.c_str();
     ::prctl(PR_SET_NAME, muduo::CurrentThread::t_threadName);
     try
@@ -104,10 +106,12 @@ struct ThreadData
     }
   }
 };
-
 void* startThread(void* obj)
 {
+  
+  //断言 判断
   ThreadData* data = static_cast<ThreadData*>(obj);
+  
   data->runInThread();
   delete data;
   return NULL;
@@ -123,7 +127,7 @@ void CurrentThread::cacheTid()
     t_tidStringLength = snprintf(t_tidString, sizeof t_tidString, "%5d ", t_cachedTid);
   }
 }
-
+//判断是否为主线程,  如果当前线程 tid  == 当前进程 ID, 即为主线程
 bool CurrentThread::isMainThread()
 {
   return tid() == ::getpid();
@@ -146,7 +150,7 @@ Thread::Thread(ThreadFunc func, const string& n)
     tid_(0),
     func_(std::move(func)),
     name_(n),
-    latch_(1)
+    latch_(1)   //原子性操作
 {
   setDefaultName();
 }
@@ -169,7 +173,7 @@ void Thread::setDefaultName()
     name_ = buf;
   }
 }
-
+//线程的入口函数
 void Thread::start()
 {
   assert(!started_);

@@ -35,12 +35,12 @@ class Condition : noncopyable
 
   // returns true if time out, false otherwise.
   bool waitForSeconds(double seconds);
-
+//  相当于 signal 函数
   void notify()
   {
     MCHECK(pthread_cond_signal(&pcond_));
   }
-
+//相当于 广播函数
   void notifyAll()
   {
     MCHECK(pthread_cond_broadcast(&pcond_));
@@ -48,6 +48,7 @@ class Condition : noncopyable
 
  private:
   MutexLock& mutex_;
+  //条件变量
   pthread_cond_t pcond_;
 };
 
