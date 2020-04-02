@@ -42,6 +42,7 @@ void threadFunc(const char* changeTo)
 
 int main()
 {
+  //每一个线程都有一份 这样的单例对象
   muduo::ThreadLocalSingleton<Test>::instance().setName("main one");
   muduo::Thread t1(std::bind(threadFunc, "thread1"));
   muduo::Thread t2(std::bind(threadFunc, "thread2"));

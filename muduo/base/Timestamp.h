@@ -121,7 +121,7 @@ inline double timeDifference(Timestamp high, Timestamp low)
 /// Add @c seconds to given timestamp.
 ///
 /// @return timestamp+seconds as Timestamp
-///
+///传到 8 字节的寄存器中,而不是堆栈中,效率更高
 //在一个时间的基础上 加上 多少秒
 inline Timestamp addTime(Timestamp timestamp, double seconds)
 {

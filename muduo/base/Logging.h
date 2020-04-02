@@ -12,6 +12,8 @@
 namespace muduo
 {
 
+  // logger -?impl  -> logstream -> operator -> fixedbuffer  -> g_output  -> g_flush
+
 class TimeZone;
 
 class Logger
@@ -79,6 +81,8 @@ class Logger
 
  private:
 
+
+//实际实现
 class Impl
 {
  public:
@@ -121,6 +125,8 @@ inline Logger::LogLevel Logger::logLevel()
 //   else
 //     logWarnStream << "Bad news";
 //
+
+// muduo::Logger()  创建一个匿名对象
 #define LOG_TRACE if (muduo::Logger::logLevel() <= muduo::Logger::TRACE) \
   muduo::Logger(__FILE__, __LINE__, muduo::Logger::TRACE, __func__).stream()
 #define LOG_DEBUG if (muduo::Logger::logLevel() <= muduo::Logger::DEBUG) \

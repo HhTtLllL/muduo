@@ -44,6 +44,7 @@ const char* strerror_tl(int savedErrno)
   return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
 }
 
+//初始化日志等级
 Logger::LogLevel initLogLevel()
 {
   if (::getenv("MUDUO_LOG_TRACE"))
@@ -120,7 +121,7 @@ Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile& file, int l
     line_(line),
     basename_(file)
 {
-  formatTime();
+  formatTime(); //格式化时间 
   CurrentThread::tid();
   stream_ << T(CurrentThread::tidString(), CurrentThread::tidStringLength());
   stream_ << T(LogLevelName[level], 6);
@@ -129,7 +130,7 @@ Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile& file, int l
     stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
   }
 }
-
+// 格式化  时间 
 void Logger::Impl::formatTime()
 {
   int64_t microSecondsSinceEpoch = time_.microSecondsSinceEpoch();
@@ -164,7 +165,8 @@ void Logger::Impl::formatTime()
   {
     Fmt us(".%06dZ ", microseconds);
     assert(us.length() == 9);
-    stream_ << T(t_time, 17) << T(us.data(), 9);
+    // 输出到 logger  的缓存区中
+    stream_ << T(t_time, 17) << T(us.data(), 9);  
   }
 }
 
@@ -183,9 +185,9 @@ Logger::Logger(SourceFile file, int line, LogLevel level, const char* func)
 {
   impl_.stream_ << func << ' ';
 }
-
+                                                      // 文件名,,行, 日志级别
 Logger::Logger(SourceFile file, int line, LogLevel level)
-  : impl_(level, 0, file, line)
+  : impl_(level, 0, file, line)   // 0 是错误代码,  0 代表没有错误
 {
 }
 

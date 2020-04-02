@@ -20,7 +20,7 @@ class ThreadLocalSingleton : noncopyable
  public:
   ThreadLocalSingleton() = delete;
   ~ThreadLocalSingleton() = delete;
-
+// 返回单例对象的引用
   static T& instance()
   {
     if (!t_value_)
@@ -30,13 +30,14 @@ class ThreadLocalSingleton : noncopyable
     }
     return *t_value_;
   }
-
+//返回对象的指针
   static T* pointer()
   {
     return t_value_;
   }
 
  private:
+ //销毁对象
   static void destructor(void* obj)
   {
     assert(obj == t_value_);

@@ -81,21 +81,24 @@ class EventLoop : noncopyable
   /// Runs callback at 'time'.
   /// Safe to call from other threads.
   ///
+  // 在某个时刻运行定时器,  调用 TimeerQueue 中的 addTimer
   TimerId runAt(Timestamp time, TimerCallback cb);
   ///
   /// Runs callback after @c delay seconds.
   /// Safe to call from other threads.
   ///
+  //过一段时间运行定时器  -- 调用 TimeerQueue 中的 addTimer
   TimerId runAfter(double delay, TimerCallback cb);
   ///
   /// Runs callback every @c interval seconds.
   /// Safe to call from other threads.
-  ///
+  ///每隔一段时间运行定时器  ---  调用 TimeerQueue 中的 addTimer
   TimerId runEvery(double interval, TimerCallback cb);
   ///
   /// Cancels the timer.
   /// Safe to call from other threads.
   ///
+  //取消定时器 -- 调用Timerqueue 的cancel 
   void cancel(TimerId timerId);
 
   // internal usage
