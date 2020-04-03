@@ -62,21 +62,28 @@ class Socket : noncopyable
   ///
   /// Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm).
   ///
+  /*
+        nagle 算法可以一定程度上避免网络拥塞
+        TCP_NODELAY 选项 可以禁用nagle 算法
+                                                      一般延迟为 200毫秒
+        禁用nagle 算法可以避免连续发包出现延迟,这对于编写低延迟的网络服务很重套
+  */
   void setTcpNoDelay(bool on);
 
   ///
   /// Enable/disable SO_REUSEADDR
   ///
+  //
   void setReuseAddr(bool on);
 
-  ///
+  ///设置地址复用
   /// Enable/disable SO_REUSEPORT
   ///
   void setReusePort(bool on);
 
   ///
   /// Enable/disable SO_KEEPALIVE
-  ///
+  ///TCP keepalive 是只定期探测连接是否存在,如果应用层有心跳的话,这个选项不是必须要设置的
   void setKeepAlive(bool on);
 
  private:

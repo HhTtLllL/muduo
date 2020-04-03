@@ -25,7 +25,7 @@ class AsyncLogging : noncopyable
 
   AsyncLogging(const string& basename,
                off_t rollSize,
-               int flushInterval = 3);
+               int flushInterval = 3); //每隔多长时间 调用一次日志函数
 
   ~AsyncLogging()
   {
@@ -53,6 +53,7 @@ class AsyncLogging : noncopyable
 
  private:
 
+//回调函数
   void threadFunc();
 
   typedef muduo::detail::FixedBuffer<muduo::detail::kLargeBuffer> Buffer;
@@ -67,9 +68,10 @@ class AsyncLogging : noncopyable
   muduo::CountDownLatch latch_;
   muduo::MutexLock mutex_;
   muduo::Condition cond_ GUARDED_BY(mutex_);
-  BufferPtr currentBuffer_ GUARDED_BY(mutex_);
-  BufferPtr nextBuffer_ GUARDED_BY(mutex_);
-  BufferVector buffers_ GUARDED_BY(mutex_);
+
+  BufferPtr currentBuffer_ GUARDED_BY(mutex_);    //当前缓冲
+  BufferPtr nextBuffer_ GUARDED_BY(mutex_);        //预备缓冲
+  BufferVector buffers_ GUARDED_BY(mutex_);             //代写入文件的已填满的缓冲
 };
 
 }  // namespace muduo

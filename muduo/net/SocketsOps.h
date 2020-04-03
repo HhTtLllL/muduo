@@ -20,12 +20,16 @@ namespace net
 namespace sockets
 {
 
+//对socket 相关系统调用进行封装
+
 ///
 /// Creates a non-blocking socket file descriptor,
 /// abort if any error.
+//创建一个 非阻塞 套接字
 int createNonblockingOrDie(sa_family_t family);
 
 int  connect(int sockfd, const struct sockaddr* addr);
+//绑定
 void bindOrDie(int sockfd, const struct sockaddr* addr);
 void listenOrDie(int sockfd);
 int  accept(int sockfd, struct sockaddr_in6* addr);

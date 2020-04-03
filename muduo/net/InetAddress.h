@@ -15,7 +15,7 @@
 #include "muduo/base/StringPiece.h"
 
 #include <netinet/in.h>
-
+//网际地址sockaddr_in 封装
 namespace muduo
 {
 namespace net
@@ -51,15 +51,18 @@ class InetAddress : public muduo::copyable
   { }
 
   sa_family_t family() const { return addr_.sin_family; }
+
+  //将 ip 转化为 字符串
   string toIp() const;
   string toIpPort() const;
+
   uint16_t toPort() const;
 
   // default copy/assignment are Okay
 
   const struct sockaddr* getSockAddr() const { return sockets::sockaddr_cast(&addr6_); }
   void setSockAddrInet6(const struct sockaddr_in6& addr6) { addr6_ = addr6; }
-
+//返回网络字节序的 ip 的 32 的整数
   uint32_t ipNetEndian() const;
   uint16_t portNetEndian() const { return addr_.sin_port; }
 

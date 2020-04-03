@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include <endian.h>
-
+// 封装了字节序转换函数
 namespace muduo
 {
 namespace net
@@ -26,8 +26,11 @@ namespace sockets
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+//主机字节序转换 网络字节序  --对64位进行转换
 inline uint64_t hostToNetwork64(uint64_t host64)
 {
+  //将主机字节序 转换为 大端字节序(网络字节序)
+  // 注意: 这个函数 不可移植 (没在posix标准中 中)
   return htobe64(host64);
 }
 
@@ -41,6 +44,8 @@ inline uint16_t hostToNetwork16(uint16_t host16)
   return htobe16(host16);
 }
 
+
+//网络字节序转化为 主机字节序
 inline uint64_t networkToHost64(uint64_t net64)
 {
   return be64toh(net64);

@@ -14,6 +14,7 @@ int main()
   EventLoop loop;
   InetAddress listenAddr(2009);
   DiscardServer server(&loop, listenAddr);
+
   server.start();
   loop.loop();
 }

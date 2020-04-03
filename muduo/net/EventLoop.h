@@ -149,10 +149,10 @@ class EventLoop : noncopyable
   Timestamp pollReturnTime_;  //调用poll 函数返回的时间戳
   std::unique_ptr<Poller> poller_;    //用来调用poll 或者 epool    生成期由EventLoop 控制
   std::unique_ptr<TimerQueue> timerQueue_;
-  int wakeupFd_;
+  int wakeupFd_;    // 用于eventfd    创建一个文件描述符,用于事件通知
   // unlike in TimerQueue, which is an internal class,
   // we don't expose Channel to client.
-  std::unique_ptr<Channel> wakeupChannel_;
+  std::unique_ptr<Channel> wakeupChannel_; //wakeup 通道, 该通道将会纳入poller_ 来管理
   boost::any context_;
 
   // scratch variables

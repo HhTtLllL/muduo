@@ -78,8 +78,8 @@ EventLoop::EventLoop()
     threadId_(CurrentThread::tid()),  //将当前创建对象的线程ID初始化给　该对象
     poller_(Poller::newDefaultPoller(this)),
     timerQueue_(new TimerQueue(this)),
-    wakeupFd_(createEventfd()),
-    wakeupChannel_(new Channel(this, wakeupFd_)),
+    wakeupFd_(createEventfd()),  //创建一个eventfd
+    wakeupChannel_(new Channel(this, wakeupFd_)), //创建一个通道,将wakefd 传进来
     currentActiveChannel_(NULL)
 {
   //记录日志
@@ -131,6 +131,7 @@ void EventLoop::loop()
     }
     // TODO sort channel by priority   按照优先级对事件集合排序
     eventHandling_ = true; //将是否正在处理事件循环标志设为true
+    //处理事件
     for (Channel* channel : activeChannels_)
     {
       currentActiveChannel_ = channel;   //设置当前活动通道
@@ -157,15 +158,17 @@ void EventLoop::quit()
     wakeup();
   }
 }
-
+//在 I/O 线程中执行某个回调函数,该函数可以跨线程调用
 void EventLoop::runInLoop(Functor cb)
 {
   if (isInLoopThread())
   {
+    //如果是当前IO线程 调用runInLoop,则同步调用cb
     cb();
   }
   else
   {
+    //如果是其他线程调用 runInLoop,则异步地将cb添加到队列中
     queueInLoop(std::move(cb));
   }
 }
@@ -174,8 +177,13 @@ void EventLoop::queueInLoop(Functor cb)
 {
   {
   MutexLockGuard lock(mutex_);
-  pendingFunctors_.push_back(std::move(cb));
+  pendingFunctors_.push_back(std::move(cb)); //添加到任务队列中
   }
+
+
+  //调用 queueInLoop 的线程不是当前IO线程需要唤醒,一遍IO线程可以及时的处理这个任务
+  //或者调用queueInLoop 的线程是当前I O 线程,并且此时正在调用 pending functor ,需要唤醒
+  //只有当前IO线程的事件回调中调用 queueInLoop 才不需要唤醒
 
   if (!isInLoopThread() || callingPendingFunctors_)
   {
@@ -247,6 +255,7 @@ void EventLoop::abortNotInLoopThread()
 void EventLoop::wakeup()
 {
   uint64_t one = 1;
+  //唤醒另一个线程
   ssize_t n = sockets::write(wakeupFd_, &one, sizeof one);
   if (n != sizeof one)
   {

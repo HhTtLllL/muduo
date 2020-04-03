@@ -30,16 +30,24 @@ class EventLoopThread : noncopyable
   EventLoopThread(const ThreadInitCallback& cb = ThreadInitCallback(),
                   const string& name = string());
   ~EventLoopThread();
+
+ //启动线程,调用thread_ 中的start() ,start 启动 threadfunc . 该线程就成为了IO线程
   EventLoop* startLoop();
 
  private:
+ //线程回调函数
   void threadFunc();
 
+//loop_  指向一个eventloop 对象
   EventLoop* loop_ GUARDED_BY(mutex_);
+  //是否退出
   bool exiting_;
-  Thread thread_;
+
+  Thread thread_;   //包含了一个thread 类的对象  -- 基于对象的思想
   MutexLock mutex_;
   Condition cond_ GUARDED_BY(mutex_);
+
+  //如果回调函数不是空的, 回调函数在loop 事件循环之前被调用
   ThreadInitCallback callback_;
 };
 

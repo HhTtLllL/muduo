@@ -52,6 +52,7 @@ static_assert(offsetof(sockaddr_in6, sin6_family) == 0, "sin6_family offset 0");
 static_assert(offsetof(sockaddr_in, sin_port) == 2, "sin_port offset 2");
 static_assert(offsetof(sockaddr_in6, sin6_port) == 2, "sin6_port offset 2");
 
+//如果没有指定 ip ,则ip 默认为 INADDR_ANY  - 0.0.0.0
 InetAddress::InetAddress(uint16_t port, bool loopbackOnly, bool ipv6)
 {
   static_assert(offsetof(InetAddress, addr6_) == 0, "addr6_ offset 0");

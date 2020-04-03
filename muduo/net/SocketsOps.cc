@@ -18,16 +18,16 @@
 #include <sys/socket.h>
 #include <sys/uio.h>  // readv
 #include <unistd.h>
-
+//封装了socket相关系统调用
 using namespace muduo;
 using namespace muduo::net;
 
 namespace
 {
 
-typedef struct sockaddr SA;
+typedef struct sockaddr SA;  //通用地址
 
-
+//将文件描述符设置为非阻塞模式
 #if VALGRIND || defined (NO_ACCEPT4)
 void setNonBlockAndCloseOnExec(int sockfd)
 {
@@ -49,6 +49,7 @@ void setNonBlockAndCloseOnExec(int sockfd)
 
 }  // namespace
 
+//将网际地址 转换为 通用地址                                                                        //sockaddr_in  网际地址
 const struct sockaddr* sockets::sockaddr_cast(const struct sockaddr_in6* addr)
 {
   return static_cast<const struct sockaddr*>(implicit_cast<const void*>(addr));
@@ -74,6 +75,8 @@ const struct sockaddr_in6* sockets::sockaddr_in6_cast(const struct sockaddr* add
   return static_cast<const struct sockaddr_in6*>(implicit_cast<const void*>(addr));
 }
 
+
+//创建非阻塞套接字
 int sockets::createNonblockingOrDie(sa_family_t family)
 {
 #if VALGRIND
@@ -111,10 +114,12 @@ void sockets::listenOrDie(int sockfd)
     LOG_SYSFATAL << "sockets::listenOrDie";
   }
 }
-
+//接受连接
 int sockets::accept(int sockfd, struct sockaddr_in6* addr)
 {
   socklen_t addrlen = static_cast<socklen_t>(sizeof *addr);
+
+  //VALGRIND  内存检测机制, 可以检测内存泄露, 还可以检测 文件描述符的打开状态
 #if VALGRIND || defined (NO_ACCEPT4)
   int connfd = ::accept(sockfd, sockaddr_cast(addr), &addrlen);
   setNonBlockAndCloseOnExec(connfd);
@@ -128,6 +133,7 @@ int sockets::accept(int sockfd, struct sockaddr_in6* addr)
     LOG_SYSERR << "Socket::accept";
     switch (savedErrno)
     {
+      //前面几个不是致命的错误,跳出
       case EAGAIN:
       case ECONNABORTED:
       case EINTR:
@@ -137,6 +143,8 @@ int sockets::accept(int sockfd, struct sockaddr_in6* addr)
         // expected errors
         errno = savedErrno;
         break;
+
+        //致命错误
       case EBADF:
       case EFAULT:
       case EINVAL:
@@ -165,7 +173,9 @@ ssize_t sockets::read(int sockfd, void *buf, size_t count)
 {
   return ::read(sockfd, buf, count);
 }
-
+//read 和 readv 不同之处在于,接收的数据可以填充到多个缓冲区中
+                                                                                                          //iov  是一个数组, iovcnt 数组的个数,第一个缓冲区不够用,就将数据接收到
+                                                                                                          //第二个缓冲区
 ssize_t sockets::readv(int sockfd, const struct iovec *iov, int iovcnt)
 {
   return ::readv(sockfd, iov, iovcnt);
@@ -175,7 +185,7 @@ ssize_t sockets::write(int sockfd, const void *buf, size_t count)
 {
   return ::write(sockfd, buf, count);
 }
-
+//关闭文件描述符
 void sockets::close(int sockfd)
 {
   if (::close(sockfd) < 0)
@@ -183,7 +193,7 @@ void sockets::close(int sockfd)
     LOG_SYSERR << "sockets::close";
   }
 }
-
+//只关闭 写的一端
 void sockets::shutdownWrite(int sockfd)
 {
   if (::shutdown(sockfd, SHUT_WR) < 0)
@@ -192,9 +202,11 @@ void sockets::shutdownWrite(int sockfd)
   }
 }
 
+//将地址转换为 ip  和端口的形式 ,保存在缓冲区中
 void sockets::toIpPort(char* buf, size_t size,
                        const struct sockaddr* addr)
 {
+  // 将addr 中的 ip  放到 buf 中
   toIp(buf,size, addr);
   size_t end = ::strlen(buf);
   const struct sockaddr_in* addr4 = sockaddr_in_cast(addr);
@@ -231,6 +243,7 @@ void sockets::fromIpPort(const char* ip, uint16_t port,
   }
 }
 
+// 从 ip 和端口 ,构造一个 网际地址
 void sockets::fromIpPort(const char* ip, uint16_t port,
                          struct sockaddr_in6* addr)
 {
@@ -242,6 +255,7 @@ void sockets::fromIpPort(const char* ip, uint16_t port,
   }
 }
 
+//返回socket 的错误
 int sockets::getSocketError(int sockfd)
 {
   int optval;
@@ -257,6 +271,7 @@ int sockets::getSocketError(int sockfd)
   }
 }
 
+//获取本地地址
 struct sockaddr_in6 sockets::getLocalAddr(int sockfd)
 {
   struct sockaddr_in6 localaddr;
@@ -269,6 +284,7 @@ struct sockaddr_in6 sockets::getLocalAddr(int sockfd)
   return localaddr;
 }
 
+//获取对端地址
 struct sockaddr_in6 sockets::getPeerAddr(int sockfd)
 {
   struct sockaddr_in6 peeraddr;
