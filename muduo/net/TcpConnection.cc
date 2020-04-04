@@ -328,6 +328,7 @@ void TcpConnection::connectEstablished()
   assert(state_ == kConnecting);
   //设置状态
   setState(kConnected);
+  //将this  转换为 智能指针  shared_ptr
   channel_->tie(shared_from_this());
 
   //关注可读事件  --TcpConnection 所对应的通道加入到Poller 关注

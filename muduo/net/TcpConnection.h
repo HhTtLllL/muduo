@@ -119,6 +119,7 @@ class TcpConnection : noncopyable,
   void handleRead(Timestamp receiveTime);
   void handleWrite();
   void handleClose();
+  //channel 中可能有错误事件
   void handleError();
   // void sendInLoop(string&& message);
   void sendInLoop(const StringPiece& message);
@@ -146,7 +147,9 @@ class TcpConnection : noncopyable,
   MessageCallback messageCallback_;
   WriteCompleteCallback writeCompleteCallback_;
   HighWaterMarkCallback highWaterMarkCallback_;
+  // 
   CloseCallback closeCallback_;
+  
   size_t highWaterMark_;
   Buffer inputBuffer_;
   Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.

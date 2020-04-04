@@ -37,6 +37,7 @@ class TimerQueue;
 ///
 /// This is an interface class, so don't expose too much details.
 //这是一个接口类，不需要暴露太多细节
+// 一个 eventloop  包含多个 channel  (聚合关系)
 class EventLoop : noncopyable
 {
  public:

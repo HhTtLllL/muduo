@@ -46,13 +46,15 @@ Channel::~Channel()
 
 void Channel::tie(const std::shared_ptr<void>& obj)
 {
+  //将智能指针 赋值给 tie_  弱引用, 因为 tie_ 是一个 弱 引用指针
   tie_ = obj;
   tied_ = true;
 }
-
+//调用 EventLoop::updateChannel ,
 void Channel::update()
 {
   addedToLoop_ = true;
+  //调用Poller::uodatechannel
   loop_->updateChannel(this);
 }
 // 调用这个函数之前确保调用disableAll

@@ -21,6 +21,7 @@ namespace muduo
 {
 namespace net
 {
+//是对 IO 注册与响应的封装
 
 class EventLoop;
 
@@ -42,7 +43,7 @@ class Channel : noncopyable
 
   Channel(EventLoop* loop, int fd);
   ~Channel();
-
+//对所发生的IO 事件的处理
   void handleEvent(Timestamp receiveTime);
   
   //回调函数的注册
@@ -93,8 +94,9 @@ class Channel : noncopyable
 
  private:
   static string eventsToString(int fd, int ev);
-
-  void update(); //
+//当调用 update ,update 调用 EventLoop 的 updateChannel    ,然后eventloop 调用 poller 的 updateChannel 
+//相当于将 channel  注册到 poller ,或者将 channel 的 fd (文件描述符)的可读可写事件注册到 poller 中
+  void update(); //负责注册或者更新 IO 的可读和可写事件
   void handleEventWithGuard(Timestamp receiveTime);
 
   static const int kNoneEvent;  //没有事件   0
@@ -103,8 +105,9 @@ class Channel : noncopyable
 
   EventLoop* loop_;   //记录这个对象所属的EventLoop
   const int  fd_;     //文件描述符,但不负责关闭该文件描述符
-  int        events_;  //关注的事件
-  int        revents_; // it's the received event types of epoll or poll             poll/epoll实际返回的事件
+  int        events_;  //关注的事件,由用户设置
+  int        revents_; // it's the received event types of epoll or poll             
+                                //  poll/epoll实际返回的事件  目前活动的事件,由Eventloop/Poller设置
   int        index_; // used by Poller.  表示在poll的事件数组中的序号
   bool       logHup_;
 

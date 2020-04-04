@@ -54,13 +54,16 @@ class EventLoopThreadPool : noncopyable
 
  private:
 
-  EventLoop* baseLoop_;
-  string name_;
-  bool started_;
-  int numThreads_;
-  int next_;
-  std::vector<std::unique_ptr<EventLoopThread>> threads_;
-  std::vector<EventLoop*> loops_;
+  EventLoop* baseLoop_;    //与acceptor 所属 EventLoop 相同
+  string name_;    
+  bool started_;     //是否开启
+  int numThreads_;  //线程数
+  int next_;     //新连接到来,所选择的EventLoop 对象下标
+                                  //当这个unique_ptr 销毁的时候,它所管理的 EventLoopThread 也就跟着 销毁
+  std::vector<std::unique_ptr<EventLoopThread>> threads_;    //IO线程列表
+
+//这里的是栈上对象,不需要我们来管理
+  std::vector<EventLoop*> loops_;       //EventLoop 列表   一个IO 线程,对应一个 EventLoop 对象
 };
 
 }  // namespace net

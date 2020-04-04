@@ -50,7 +50,7 @@ class Timer : noncopyable
 
  private:
   const TimerCallback callback_;   //定时器回调函数
-  Timestamp expiration_;                 // 下一次的超时时刻,当超时时刻来临时,  调用定时器灰调函数
+  Timestamp expiration_;                 // 下一次的超时时刻,当超时时刻来临时,  调用定时器回调函数
   const double interval_;                 // 超时时间间隔,如果是一次性定时器,该值为0  
   const bool repeat_;                        // 是否重复  .false 一次性定时器,,   true 重复定时器
   const int64_t sequence_;                // 定时器序号
