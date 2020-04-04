@@ -131,15 +131,17 @@ class TcpConnection : noncopyable,
   void startReadInLoop();
   void stopReadInLoop();
 
-  EventLoop* loop_;
-  const string name_;
-  StateE state_;  // FIXME: use atomic variable
+  EventLoop* loop_;   //所属EventLoop
+  const string name_;    //连接名
+  StateE state_;  // FIXME: use atomic variable   连接状态
   bool reading_;
   // we don't expose those classes to client.
   std::unique_ptr<Socket> socket_;
   std::unique_ptr<Channel> channel_;
-  const InetAddress localAddr_;
-  const InetAddress peerAddr_;
+
+
+  const InetAddress localAddr_;  //本地地址
+  const InetAddress peerAddr_;   //对端地址
   ConnectionCallback connectionCallback_;
   MessageCallback messageCallback_;
   WriteCompleteCallback writeCompleteCallback_;

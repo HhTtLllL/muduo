@@ -41,15 +41,16 @@ TcpConnection::TcpConnection(EventLoop* loop,
                              const InetAddress& localAddr,
                              const InetAddress& peerAddr)
   : loop_(CHECK_NOTNULL(loop)),
-    name_(nameArg),
-    state_(kConnecting),
+    name_(nameArg),   //连接的名称
+    state_(kConnecting),   //连接的状态
     reading_(true),
-    socket_(new Socket(sockfd)),
-    channel_(new Channel(loop, sockfd)),
+    socket_(new Socket(sockfd)),  //构造一个套接字
+    channel_(new Channel(loop, sockfd)),  //构造一个通道
     localAddr_(localAddr),
     peerAddr_(peerAddr),
     highWaterMark_(64*1024*1024)
 {
+  //通道可读事件到来的时候,回调TcpConnection::handleRead,  _1 是事件发生时间
   channel_->setReadCallback(
       std::bind(&TcpConnection::handleRead, this, _1));
   channel_->setWriteCallback(
@@ -323,9 +324,13 @@ void TcpConnection::stopReadInLoop()
 void TcpConnection::connectEstablished()
 {
   loop_->assertInLoopThread();
+  //判断状态
   assert(state_ == kConnecting);
+  //设置状态
   setState(kConnected);
   channel_->tie(shared_from_this());
+
+  //关注可读事件  --TcpConnection 所对应的通道加入到Poller 关注
   channel_->enableReading();
 
   connectionCallback_(shared_from_this());
@@ -350,7 +355,7 @@ void TcpConnection::handleRead(Timestamp receiveTime)
   int savedErrno = 0;
   ssize_t n = inputBuffer_.readFd(channel_->fd(), &savedErrno);
   if (n > 0)
-  {
+  {                                    //把当前对象的裸指针,会把当前Tcp对象转换为 shared_ptr
     messageCallback_(shared_from_this(), &inputBuffer_, receiveTime);
   }
   else if (n == 0)

@@ -12,6 +12,7 @@ using muduo::net::InetAddress;
 
 BOOST_AUTO_TEST_CASE(testInetAddress)
 {
+  //如果只设置了 端口,地址应该为 0.0.0.0
   InetAddress addr0(1234);
   BOOST_CHECK_EQUAL(addr0.toIp(), string("0.0.0.0"));
   BOOST_CHECK_EQUAL(addr0.toIpPort(), string("0.0.0.0:1234"));

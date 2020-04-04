@@ -45,8 +45,10 @@ class Acceptor : noncopyable
   void handleRead();
 
   EventLoop* loop_;
-  Socket acceptSocket_;
-  Channel acceptChannel_;
+  Socket acceptSocket_;  //监听套接字  --即 server socket
+  Channel acceptChannel_;  //会观察套接字的可读事件
+                                                          //用于观察此 socket 的 readable 事件,并回调accptor::handleRead(),
+                                                        //handleRead() 调用 accept() 来接受新连接,并回调用户callback()  应用层的回调 
   NewConnectionCallback newConnectionCallback_;
   bool listenning_;
   int idleFd_;

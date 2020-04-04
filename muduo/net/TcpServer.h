@@ -47,6 +47,7 @@ class TcpServer : noncopyable
             Option option = kNoReusePort);
   ~TcpServer();  // force out-line dtor, for std::unique_ptr members.
 
+//返回服务的端口和名称
   const string& ipPort() const { return ipPort_; }
   const string& name() const { return name_; }
   EventLoop* getLoop() const { return loop_; }
@@ -76,6 +77,7 @@ class TcpServer : noncopyable
 
   /// Set connection callback.
   /// Not thread safe.
+  //设置连接到来或者连接关闭回调函数
   void setConnectionCallback(const ConnectionCallback& cb)
   { connectionCallback_ = cb; }
 
@@ -91,28 +93,36 @@ class TcpServer : noncopyable
 
  private:
   /// Not thread safe, but in loop
+  //新连接到来回调的函数
   void newConnection(int sockfd, const InetAddress& peerAddr);
   /// Thread safe.
   void removeConnection(const TcpConnectionPtr& conn);
   /// Not thread safe, but in loop
   void removeConnectionInLoop(const TcpConnectionPtr& conn);
-
+                                              //key == 连接名称 ,  value 连接对象的指针
   typedef std::map<string, TcpConnectionPtr> ConnectionMap;
 
-  EventLoop* loop_;  // the acceptor loop
-  const string ipPort_;
-  const string name_;
+  EventLoop* loop_;  // the acceptor loop acceptor 所属的Eventloop 
+  const string ipPort_;          //服务端口
+  const string name_;            //服务名
   std::unique_ptr<Acceptor> acceptor_; // avoid revealing Acceptor
   std::shared_ptr<EventLoopThreadPool> threadPool_;
+ 
+ 
   //注册三个回调函数
-  ConnectionCallback connectionCallback_;   //建立连接和断开的回调函数      通过标记判断连接还是断开
+  //连接到来的回调函数
+  ConnectionCallback connectionCallback_;   //建立连接和断开的回调函数      通过标记判断连接还是断开 
+  //消息到来的回调函数
   MessageCallback messageCallback_;            //消息到达回调
+ 
   WriteCompleteCallback writeCompleteCallback_;//消息发送完毕回调
   ThreadInitCallback threadInitCallback_;
-  AtomicInt32 started_;
+  
+  
+  AtomicInt32 started_;   //是否已经启动
   // always in loop thread
-  int nextConnId_;
-  ConnectionMap connections_;
+  int nextConnId_;                               //下一个连接ID
+  ConnectionMap connections_; //维护一个连接列表
 };
 
 }  // namespace net
