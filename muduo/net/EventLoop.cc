@@ -110,12 +110,14 @@ EventLoop::~EventLoop()
   t_loopInThisThread = NULL;
 }
 //事件循环，该函数不能跨线程调用,只能在创建该对象的线程中调用
+//事件循环必须在IO线程执行,因此 loop 会检查 pre-condition
 void EventLoop::loop()
 {
   assert(!looping_); //判断之前是否已经调用过 loop
  
  //断言当前处于创建该对象的线程中
   assertInLoopThread(); 
+  
   looping_ = true;
   quit_ = false;  // FIXME: what if someone calls quit() before loop() ?
   LOG_TRACE << "EventLoop " << this << " start looping";
@@ -123,6 +125,8 @@ void EventLoop::loop()
   while (!quit_)
   {
     activeChannels_.clear(); //清空激活事件集合
+
+    //调用poll  得到活动的通道
     pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_); //pool_wait 或 epool_wait 阻塞在这里,  调用poll返回活动的通道
     ++iteration_;
     if (Logger::logLevel() <= Logger::TRACE)
@@ -131,7 +135,7 @@ void EventLoop::loop()
     }
     // TODO sort channel by priority   按照优先级对事件集合排序
     eventHandling_ = true; //将是否正在处理事件循环标志设为true
-    //处理事件
+    //遍历活动通道进行处理,  - - -- - - -处理事件
     for (Channel* channel : activeChannels_)
     {
       currentActiveChannel_ = channel;   //设置当前活动通道
@@ -169,6 +173,7 @@ void EventLoop::runInLoop(Functor cb)
   else
   {
     //如果是其他线程调用 runInLoop,则异步地将cb添加到队列中
+    // 让EventLoop 所对应的IO  线程 执行相应的 回调函数函数
     queueInLoop(std::move(cb));
   }
 }
@@ -251,18 +256,22 @@ void EventLoop::abortNotInLoopThread()
             << " was created in threadId_ = " << threadId_
             << ", current thread id = " <<  CurrentThread::tid();
 }
-
+// 用来唤醒IO 线程, 当其他线程需要终止 当前IO 线程的时候, 
+// 需要 先唤醒 这个IO 线程,  
+// 回调在   创建这个 EventLoop 的时候设置
+//   当其他线程 需要 quit 这个线程的时候, IO 线程可能正在 阻塞在poll ,此时,
+// wakeup 往 fd 中写数据, 触发回调的可写事件 , 然后取处理
 void EventLoop::wakeup()
 {
   uint64_t one = 1;
-  //唤醒另一个线程
+  //唤醒另一个线程 往这个线程中写入 8 个字节,就可以唤醒这个线程
   ssize_t n = sockets::write(wakeupFd_, &one, sizeof one);
   if (n != sizeof one)
   {
     LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
   }
 }
-
+// 从唤醒的 wakeup 线程中 读出数据
 void EventLoop::handleRead()
 {
   uint64_t one = 1;

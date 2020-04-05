@@ -31,6 +31,10 @@ class EventLoop;
 /*
     channel 是 acceptor ,Connector,EventLoop,timeQueue,tcpConnection 的成员，生命期有后者控制
     Channel 的生命周期不是由EventLoop 控制，因为它俩的关系是聚合关系
+
+
+
+    channel 不拥有 文件描述符,当它销毁时 ,不调用close  关闭文件描述符
 */
 /// This class doesn't own the file descriptor.
 /// The file descriptor could be a socket,  文件描述符可能被socket  拥有
@@ -44,6 +48,7 @@ class Channel : noncopyable
   Channel(EventLoop* loop, int fd);
   ~Channel();
 //对所发生的IO 事件的处理
+//有可读事件来, 调用channel 的 handeventl , 然后 handleEvent 调用acceptor 的 handleRead
   void handleEvent(Timestamp receiveTime);
   
   //回调函数的注册
@@ -75,6 +80,7 @@ class Channel : noncopyable
 
   //不关注事件了
   void disableAll() { events_ = kNoneEvent; update(); }
+  
   bool isWriting() const { return events_ & kWriteEvent; }
   bool isReading() const { return events_ & kReadEvent; }
 
@@ -113,7 +119,7 @@ class Channel : noncopyable
 
   std::weak_ptr<void> tie_;
   bool tied_;
-  bool eventHandling_;  //是否处于时间处理中
+  bool eventHandling_;  //是否处于事件处理中
   bool addedToLoop_;
 
   //回调

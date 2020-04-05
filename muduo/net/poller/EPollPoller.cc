@@ -55,16 +55,20 @@ EPollPoller::~EPollPoller()
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
   LOG_TRACE << "fd total count " << channels_.size();
+  // 得到 有多少个 消息相应
   int numEvents = ::epoll_wait(epollfd_,
                                &*events_.begin(),
                                static_cast<int>(events_.size()),
                                timeoutMs);
   int savedErrno = errno;
+  //计时
   Timestamp now(Timestamp::now());
   if (numEvents > 0)
   {
     LOG_TRACE << numEvents << " events happened";
+    
     fillActiveChannels(numEvents, activeChannels);
+    
     if (implicit_cast<size_t>(numEvents) == events_.size())
     {
       events_.resize(events_.size()*2);
