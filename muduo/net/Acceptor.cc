@@ -49,7 +49,7 @@ void Acceptor::listen()
   loop_->assertInLoopThread();
   listenning_ = true;
   acceptSocket_.listen();
-  acceptChannel_.enableReading(); //关注可读事件
+  acceptChannel_.enableReading(); //关注套接字的 可读事件,当可读事件到来的时候, 会调用 handleRead
 }
 
 void Acceptor::handleRead()
@@ -78,11 +78,13 @@ void Acceptor::handleRead()
     // Read the section named "The special problem of
     // accept()ing when you can't" in libev's doc.
     // By Marc Lehmann, author of libev.
+    //文件描述符 太多了
     if (errno == EMFILE)
     {
-      ::close(idleFd_); 
-      idleFd_ = ::accept(acceptSocket_.fd(), NULL, NULL);
-      ::close(idleFd_);
+      ::close(idleFd_);   //先把空闲描述符关掉,否则, 由于采用的是 电平 处理, 会一直触发,
+                                          // 所以 会预先留一个文件描述
+      idleFd_ = ::accept(acceptSocket_.fd(), NULL, NULL);  
+      ::close(idleFd_);  //一接受  就关闭
       idleFd_ = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
     }
   }

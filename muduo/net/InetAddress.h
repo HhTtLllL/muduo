@@ -64,6 +64,7 @@ class InetAddress : public muduo::copyable
   void setSockAddrInet6(const struct sockaddr_in6& addr6) { addr6_ = addr6; }
 //返回网络字节序的 ip 的 32 的整数
   uint32_t ipNetEndian() const;
+  //返回端口
   uint16_t portNetEndian() const { return addr_.sin_port; }
 
   // resolve hostname to IP address, not changing port or sin_family

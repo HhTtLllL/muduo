@@ -41,7 +41,8 @@ EventLoop* EventLoopThread::startLoop()
 {
   assert(!thread_.started());
 
-  //另外开启一个线程, 调用线程的回调函数
+  //另外开启一个线程, 调用线程的回调函数 ,
+  //调用 threadFunc 
   thread_.start();
   //执行 startloop 线程和 线程的回调 这个线程 是并发执行的,所以没法保证 回调函数和下面的 线程那个先执行
   //  所以 如果 loop == loop 就wait ,回调函数中会给loop 赋值,令它不为 NULL
@@ -65,6 +66,7 @@ void EventLoopThread::threadFunc()
 
   if (callback_)
   {
+    //初始化
     callback_(&loop);
   }
 

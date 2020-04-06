@@ -18,7 +18,7 @@ struct tcp_info;
 
 namespace muduo
 {
-///
+// 使用 RAII 方法封装 socket file descriptor 
 /// TCP networking.
 ///
 namespace net
@@ -63,6 +63,7 @@ class Socket : noncopyable
   /// Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm).
   ///
   /*
+      如果频繁的发送数据包,会造成延迟, 因为它会等待,合并
         nagle 算法可以一定程度上避免网络拥塞
         TCP_NODELAY 选项 可以禁用nagle 算法
                                                       一般延迟为 200毫秒
@@ -74,11 +75,11 @@ class Socket : noncopyable
   /// Enable/disable SO_REUSEADDR
   ///
   //
+  ///设置地址复用
   void setReuseAddr(bool on);
 
-  ///设置地址复用
   /// Enable/disable SO_REUSEPORT
-  ///
+  //  设置端口复用:
   void setReusePort(bool on);
 
   ///

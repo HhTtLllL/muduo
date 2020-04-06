@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include <endian.h>
-// 封装了字节序转换函数
+// 封装了字节序转换函数 全局函数,
 namespace muduo
 {
 namespace net

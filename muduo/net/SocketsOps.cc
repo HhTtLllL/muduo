@@ -31,7 +31,7 @@ typedef struct sockaddr SA;  //通用地址
 #if VALGRIND || defined (NO_ACCEPT4)
 void setNonBlockAndCloseOnExec(int sockfd)
 {
-  // non-block
+  // non-block  先获取标志
   int flags = ::fcntl(sockfd, F_GETFL, 0);
   flags |= O_NONBLOCK;
   int ret = ::fcntl(sockfd, F_SETFL, flags);
@@ -79,6 +79,8 @@ const struct sockaddr_in6* sockets::sockaddr_in6_cast(const struct sockaddr* add
 //创建非阻塞套接字
 int sockets::createNonblockingOrDie(sa_family_t family)
 {
+  //VALGRIND  内存检测机制, 可以检测内存泄露, 还可以检测 文件描述符的打开状态
+
 #if VALGRIND
   int sockfd = ::socket(family, SOCK_STREAM, IPPROTO_TCP);
   if (sockfd < 0)
@@ -124,6 +126,7 @@ int sockets::accept(int sockfd, struct sockaddr_in6* addr)
   int connfd = ::accept(sockfd, sockaddr_cast(addr), &addrlen);
   setNonBlockAndCloseOnExec(connfd);
 #else
+//返回一个已连接套接字
   int connfd = ::accept4(sockfd, sockaddr_cast(addr),
                          &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC);
 #endif
@@ -249,6 +252,7 @@ void sockets::fromIpPort(const char* ip, uint16_t port,
 {
   addr->sin6_family = AF_INET6;
   addr->sin6_port = hostToNetwork16(port);
+  // 将点分十进制
   if (::inet_pton(AF_INET6, ip, &addr->sin6_addr) <= 0)
   {
     LOG_SYSERR << "sockets::fromIpPort";

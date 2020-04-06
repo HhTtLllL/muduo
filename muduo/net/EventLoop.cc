@@ -144,6 +144,7 @@ void EventLoop::loop()
     currentActiveChannel_ = NULL;
     eventHandling_ = false;     //将是否正在处理事件循环标志设为false
 
+    //  执行一些  其他线程或者是当前线程 添加的 用户任务,让IO 线程也能执行一些用户任务
     doPendingFunctors();
   }
 
@@ -177,9 +178,10 @@ void EventLoop::runInLoop(Functor cb)
     queueInLoop(std::move(cb));
   }
 }
-
+// 将对应的  回调任务添加到 队列中
 void EventLoop::queueInLoop(Functor cb)
 {
+
   {
   MutexLockGuard lock(mutex_);
   pendingFunctors_.push_back(std::move(cb)); //添加到任务队列中
@@ -187,6 +189,7 @@ void EventLoop::queueInLoop(Functor cb)
 
 
   //调用 queueInLoop 的线程不是当前IO线程需要唤醒,一遍IO线程可以及时的处理这个任务
+
   //或者调用queueInLoop 的线程是当前I O 线程,并且此时正在调用 pending functor ,需要唤醒
   //只有当前IO线程的事件回调中调用 queueInLoop 才不需要唤醒
 
@@ -282,21 +285,27 @@ void EventLoop::handleRead()
   }
 }
 
-void EventLoop::doPendingFunctors()//执行任务队列中的任务
+void EventLoop::doPendingFunctors()//执行任务队列中回调函数的任务
 {
+  // 先定义一个空的  functors
   std::vector<Functor> functors;
   callingPendingFunctors_ = true;//是否正在调用pendingFunctors_的函数对象。
 
   {
   MutexLockGuard lock(mutex_);
+
+  // swap 调用完之后, pending 中就为空,  
   functors.swap(pendingFunctors_);
   }
-
+    //循环调用  回调函数
   for (const Functor& functor : functors)
   {
     functor();
   }
+  
   callingPendingFunctors_ = false;
+
+
 }
 
 void EventLoop::printActiveChannels() const

@@ -84,6 +84,7 @@ void Socket::shutdownWrite()
   sockets::shutdownWrite(sockfd_);
 }
 
+//禁用 negly 算法
 void Socket::setTcpNoDelay(bool on)
 {
   int optval = on ? 1 : 0;

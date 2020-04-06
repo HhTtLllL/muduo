@@ -20,11 +20,12 @@ namespace net
 namespace sockets
 {
 
-//对socket 相关系统调用进行封装
+//对socket 相关系统调用进行封装,全局函数
 
 ///
 /// Creates a non-blocking socket file descriptor,
 /// abort if any error.
+
 //创建一个 非阻塞 套接字
 int createNonblockingOrDie(sa_family_t family);
 
