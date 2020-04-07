@@ -145,15 +145,34 @@ class TcpConnection : noncopyable,
   const InetAddress peerAddr_;   //对端地址
   ConnectionCallback connectionCallback_;
   MessageCallback messageCallback_;
-  WriteCompleteCallback writeCompleteCallback_;
-  HighWaterMarkCallback highWaterMarkCallback_;
-  // 
+  //大流量的需要关注
+  /*
+      不断生成数据,然后发送conn->send()  
+      如果对等方接收不及时,受到通告窗口的控制,内核发送缓冲不足,这个时候,就会将用户数据添加到
+      应用层发送缓冲区, 可能会撑爆 应用层的发送缓冲区 
+
+      解决方法就是调整发送频率,  ----关注 writecompleCallback 
+
+      所有数据都发送完, writecompleCallback  回调,然后继续发送
+  */
+  WriteCompleteCallback writeCompleteCallback_; //数据发送完毕回调函数, 即所有的用户数据都已拷贝到内核缓冲区时
+                                                                                                            //回调该函数,outputBuffer_ 被清空也会回调该函数,
+                                                                                                            //可以理解为低水位标回调函数
+  HighWaterMarkCallback highWaterMarkCallback_;  // 高水位标回调函数 
+  //  output buffer 缓冲区撑到一定程度,调用这个函数
   CloseCallback closeCallback_;
   
-  size_t highWaterMark_;
+  size_t highWaterMark_; // 高水位标,高水位达到多少调用 high 函数
   Buffer inputBuffer_;   //应用层接受缓冲区
   Buffer outputBuffer_; // 应用层发送缓冲区                             FIXME: use list<Buffer> as output buffer.
-  boost::any context_;
+  boost::any context_;   //绑定一个未知类型的上下文对象   
+  /*
+        可变类型解决方案  
+        void*  这种方法不是类型安全的 
+        boost::any   
+              任意类型的类型安全存储以及安全的取回
+              在标准容器中存放不同类型的方法, 比如说 vector <boost::any>
+  */
   // FIXME: creationTime_, lastReceiveTime_
   //        bytesReceived_, bytesSent_
 };

@@ -63,6 +63,7 @@ TcpClient::TcpClient(EventLoop* loop,
     connect_(true),
     nextConnId_(1)
 {
+  //设置连接成功 回调函数
   connector_->setNewConnectionCallback(
       std::bind(&TcpClient::newConnection, this, _1));
   // FIXME setConnectFailedCallback
@@ -85,6 +86,7 @@ TcpClient::~TcpClient()
   {
     assert(loop_ == conn->getLoop());
     // FIXME: not 100% safe, if we are in different thread
+   //重新设置 TcpConnection 中的closeCallback_ 为 detail::removeconnection
     CloseCallback cb = std::bind(&detail::removeConnection, loop_, _1);
     loop_->runInLoop(
         std::bind(&TcpConnection::setCloseCallback, conn, cb));
@@ -95,6 +97,7 @@ TcpClient::~TcpClient()
   }
   else
   {
+    //这种情况,说明connector 处于未连接状态,将connector_ 停止
     connector_->stop();
     // FIXME: HACK
     loop_->runAfter(1, std::bind(&detail::removeConnector, connector_));
@@ -107,9 +110,9 @@ void TcpClient::connect()
   LOG_INFO << "TcpClient::connect[" << name_ << "] - connecting to "
            << connector_->serverAddress().toIpPort();
   connect_ = true;
-  connector_->start();
+  connector_->start(); //发起连接
 }
-
+//用于连接已建立的情况下 ,关闭连接
 void TcpClient::disconnect()
 {
   connect_ = false;
@@ -122,7 +125,7 @@ void TcpClient::disconnect()
     }
   }
 }
-
+//停止 connector_    可能是连接尚未建立时,停止连接
 void TcpClient::stop()
 {
   connect_ = false;
@@ -141,6 +144,7 @@ void TcpClient::newConnection(int sockfd)
   InetAddress localAddr(sockets::getLocalAddr(sockfd));
   // FIXME poll with zero timeout to double confirm the new connection
   // FIXME use make_shared if necessary
+  // 构造一个 ptr
   TcpConnectionPtr conn(new TcpConnection(loop_,
                                           connName,
                                           sockfd,
@@ -154,9 +158,9 @@ void TcpClient::newConnection(int sockfd)
       std::bind(&TcpClient::removeConnection, this, _1)); // FIXME: unsafe
   {
     MutexLockGuard lock(mutex_);
-    connection_ = conn;
+    connection_ = conn;   //保存TcpConnection
   }
-  conn->connectEstablished();
+  conn->connectEstablished();  //这里回调connectionCallBack_   就是关注事件的可读事件
 }
 
 void TcpClient::removeConnection(const TcpConnectionPtr& conn)
@@ -175,6 +179,8 @@ void TcpClient::removeConnection(const TcpConnectionPtr& conn)
   {
     LOG_INFO << "TcpClient::connect[" << name_ << "] - Reconnecting to "
              << connector_->serverAddress().toIpPort();
+
+   //这里重连是指连接建立成功之后被断开连接的重连
     connector_->restart();
   }
 }

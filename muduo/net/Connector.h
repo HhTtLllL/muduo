@@ -25,6 +25,8 @@ namespace net
 class Channel;
 class EventLoop;
 
+//主动发起连接,带有自动重连的功能
+
 class Connector : noncopyable,
                   public std::enable_shared_from_this<Connector>
 {
@@ -45,8 +47,8 @@ class Connector : noncopyable,
 
  private:
   enum States { kDisconnected, kConnecting, kConnected };
-  static const int kMaxRetryDelayMs = 30*1000;
-  static const int kInitRetryDelayMs = 500;
+  static const int kMaxRetryDelayMs = 30*1000; // 30 秒,最大重连延迟时间
+  static const int kInitRetryDelayMs = 500;  //0.5 秒,初始状态,连接不上,0.5 秒后重连
 
   void setState(States s) { state_ = s; }
   void startInLoop();
@@ -59,13 +61,13 @@ class Connector : noncopyable,
   int removeAndResetChannel();
   void resetChannel();
 
-  EventLoop* loop_;
-  InetAddress serverAddr_;
-  bool connect_; // atomic
+  EventLoop* loop_;  //所属EventLoop
+  InetAddress serverAddr_;   //服务器端地址
+  bool connect_; // atomic   是否连接
   States state_;  // FIXME: use atomic variable
-  std::unique_ptr<Channel> channel_;
-  NewConnectionCallback newConnectionCallback_;
-  int retryDelayMs_;
+  std::unique_ptr<Channel> channel_;  //Connector 对应的通道
+  NewConnectionCallback newConnectionCallback_;   //连接成功回调函数
+  int retryDelayMs_;   //重连延迟时间
 };
 
 }  // namespace net

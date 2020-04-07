@@ -151,6 +151,8 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     return;
   }
   // if no thing in output queue, try writing directly
+  //是否关注可写事件
+  //通道 没有关注可写事件  并且   发送缓冲区没有数据,直接write
   if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
   {
     nwrote = sockets::write(channel_->fd(), data, len);
@@ -162,7 +164,7 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
         loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
       }
     }
-    else // nwrote < 0
+    else // nwrote < 0  出错
     {
       nwrote = 0;
       if (errno != EWOULDBLOCK)
@@ -177,9 +179,12 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
   }
 
   assert(remaining <= len);
+  //没有错误,并且还有未写完的数据(说明内核发送缓冲区满,要将未写完的数据添加到 output buffer 中)
   if (!faultError && remaining > 0)
   {
     size_t oldLen = outputBuffer_.readableBytes();
+
+    //如果超过highwaterMark_ ( 高水位标),回调 highWaterMarkCallback
     if (oldLen + remaining >= highWaterMark_
         && oldLen < highWaterMark_
         && highWaterMarkCallback_)
@@ -189,7 +194,7 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     outputBuffer_.append(static_cast<const char*>(data)+nwrote, remaining);
     if (!channel_->isWriting())
     {
-      channel_->enableWriting();
+      channel_->enableWriting();  //关注POLLOUT 事件
     }
   }
 }
@@ -393,10 +398,11 @@ void TcpConnection::handleRead(Timestamp receiveTime)
     handleError();
   }
 }
-
+// 如果内核发送缓冲区有空间了, 回调该函数
 void TcpConnection::handleWrite()
 {
   loop_->assertInLoopThread();
+  //如果处于 POLLOUT 事件
   if (channel_->isWriting())
   {
     ssize_t n = sockets::write(channel_->fd(),
@@ -405,15 +411,17 @@ void TcpConnection::handleWrite()
     if (n > 0)
     {
       outputBuffer_.retrieve(n);
-      if (outputBuffer_.readableBytes() == 0)
-      {
-        channel_->disableWriting();
-        if (writeCompleteCallback_)
+      if (outputBuffer_.readableBytes() == 0) //发送缓冲区已经清空
+      { 
+        channel_->disableWriting();   //停止关注(POLLOUT)事件,一面出现 busy loop 
+        if (writeCompleteCallback_)  //回调writeCompleteCallback_
         {
+          //应用层发送缓冲区被清空,就回调writeCompleteCallback_
           loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
         }
-        if (state_ == kDisconnecting)
+        if (state_ == kDisconnecting)  //发送缓冲区已经清空并且连接状态为 kDisconnect ,要关闭连接
         {
+          //关闭连接
           shutdownInLoop();
         }
       }
