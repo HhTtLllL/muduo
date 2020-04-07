@@ -21,6 +21,19 @@ namespace muduo
 {
 namespace net
 {
+  /*
+     epoll 使用LT 模式的原因
+    
+      1.与 poller 兼容
+
+      2.LT模式不会发生漏掉事件的BUG,但是POLLOUT事件 不能一开始就关注,否则会发生bufy loop,
+      而应该在write 无法完全写入内核缓冲区的时候才关注,将未写入内核缓冲区的数据添加到应用层 output buffer ,
+      直到应用层 output buffer 写完,停止关注 POLLOUT 事件
+      
+      3.  读写的时候不必等候 EAGAIN,可以节省系统调用次数,降低延迟.  
+      注: 如果用ET 模式,读的时候读到 EAGAIN,写的时候直到 output buffer 写完或者EAGAIN
+  
+  */
 
 ///
 /// IO Multiplexing with epoll(4).

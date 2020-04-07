@@ -32,7 +32,7 @@ TcpServer::TcpServer(EventLoop* loop,
     messageCallback_(defaultMessageCallback),
     nextConnId_(1)
 {
-  acceptor_->setNewConnectionCallback(    //_1 对应的是socket文件描述符, _2 对应的是对等放的地址
+  acceptor_->setNewConnectionCallback(    //_1 对应的是socket文件描述符, _2 对应的是对等方的地址
       std::bind(&TcpServer::newConnection, this, _1, _2));
 }
 
@@ -55,7 +55,9 @@ void TcpServer::setThreadNum(int numThreads)
   assert(0 <= numThreads);
   threadPool_->setThreadNum(numThreads);
 }
-
+//该函数可以多次调用, 因为 开始时进行了判断
+//该函数可以跨线程调用 
+//start    就是开始   ---  监听
 void TcpServer::start()
 {
   if (started_.getAndSet(1) == 0)
@@ -91,7 +93,8 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
   // FIXME poll with zero timeout to double confirm the new connection
   // FIXME use make_shared if necessary
 
-  //创建一个连接,构造了一个对象
+  //创建一个连接,构造了一个对象,它所属的loop 就为 刚刚我们通过getNextLoop()  找到的 ioloop
+  // 而不是 tcpserver 所属的 loop,  tcpserver 所属的loop 为监听套接字的loop
   TcpConnectionPtr conn(new TcpConnection(ioLoop,
                                           connName,
                                           sockfd,
@@ -106,6 +109,8 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
   conn->setWriteCompleteCallback(writeCompleteCallback_);
   conn->setCloseCallback(
       std::bind(&TcpServer::removeConnection, this, _1)); // FIXME: unsafe
+
+      // 应该让ioloop(io线程)  所属的线程 调用 连接
   ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
   
 }
@@ -121,6 +126,7 @@ void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
   loop_->assertInLoopThread();
   LOG_INFO << "TcpServer::removeConnectionInLoop [" << name_
            << "] - connection " << conn->name();
+           // 将这个 连接删除
   size_t n = connections_.erase(conn->name());
   (void)n;
   assert(n == 1);

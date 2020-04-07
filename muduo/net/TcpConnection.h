@@ -138,7 +138,7 @@ class TcpConnection : noncopyable,
   bool reading_;
   // we don't expose those classes to client.
   std::unique_ptr<Socket> socket_;
-  std::unique_ptr<Channel> channel_;
+  std::unique_ptr<Channel> channel_;  //关注套接字的可读可写 事件
 
 
   const InetAddress localAddr_;  //本地地址
@@ -151,8 +151,8 @@ class TcpConnection : noncopyable,
   CloseCallback closeCallback_;
   
   size_t highWaterMark_;
-  Buffer inputBuffer_;
-  Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
+  Buffer inputBuffer_;   //应用层接受缓冲区
+  Buffer outputBuffer_; // 应用层发送缓冲区                             FIXME: use list<Buffer> as output buffer.
   boost::any context_;
   // FIXME: creationTime_, lastReceiveTime_
   //        bytesReceived_, bytesSent_

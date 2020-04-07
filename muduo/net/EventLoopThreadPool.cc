@@ -37,7 +37,7 @@ void EventLoopThreadPool::start(const ThreadInitCallback& cb)
   baseLoop_->assertInLoopThread();
 
   started_ = true;
-
+// 创建若干个线程
   for (int i = 0; i < numThreads_; ++i)
   {
     char buf[name_.size() + 32];
@@ -56,11 +56,12 @@ void EventLoopThreadPool::start(const ThreadInitCallback& cb)
   }
 }
 
-//一个新的连接到来
+//一个新的连接到来,需要选择一个 EventLoop 处理
 EventLoop* EventLoopThreadPool::getNextLoop()
 {
   baseLoop_->assertInLoopThread();
   assert(started_);
+  // 这个 baseloop_  是 acceptor(监听套接字所属的 EventLoop), 处理连接客户端的 main_eventloop
   EventLoop* loop = baseLoop_;
 
 //如果 loops_ 为空,也就上是面这个函数没有创建出线程(numThreads == 0),则 loops_ 指向 baseLoop_ 
@@ -75,6 +76,8 @@ EventLoop* EventLoopThreadPool::getNextLoop()
       next_ = 0;
     }
   }
+
+  //如果为空,就代表 一共就只有一个线程 main_loop, 就返回这个main_loop
   return loop;
 }
 

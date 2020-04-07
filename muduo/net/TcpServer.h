@@ -105,7 +105,7 @@ class TcpServer : noncopyable
   EventLoop* loop_;  // the acceptor loop acceptor 所属的Eventloop 
   const string ipPort_;          //服务端口
   const string name_;            //服务名
-  std::unique_ptr<Acceptor> acceptor_; // avoid revealing Acceptor
+  std::unique_ptr<Acceptor> acceptor_; // avoid revealing Acceptor  有了 acceptor  ,所以 tcpserver 具有连接,绑定,监听等功能
   std::shared_ptr<EventLoopThreadPool> threadPool_;
  
  
@@ -122,7 +122,8 @@ class TcpServer : noncopyable
   AtomicInt32 started_;   //是否已经启动
   // always in loop thread
   int nextConnId_;                               //下一个连接ID
-  ConnectionMap connections_; //维护一个连接列表
+  ConnectionMap connections_; //维护一个连接列表  ,一个服务器可以处理多个连接
+                                                                // key  表示连接的 名称, value 表示连接的 Tcpconnection 的指针
 };
 
 }  // namespace net

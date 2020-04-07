@@ -89,7 +89,7 @@ void TcpConnection::send(const void* data, int len)
 {
   send(StringPiece(static_cast<const char*>(data), len));
 }
-
+// 线程安全, 可以跨线程调用
 void TcpConnection::send(const StringPiece& message)
 {
   if (state_ == kConnected)
@@ -100,6 +100,8 @@ void TcpConnection::send(const StringPiece& message)
     }
     else
     {
+      //否则转到  EventLoop 对象所在的 IO 线程 调用
+      // 跨线程 调用需要有额外的 开销,  需要传递这快缓冲区
       void (TcpConnection::*fp)(const StringPiece& message) = &TcpConnection::sendInLoop;
       loop_->runInLoop(
           std::bind(fp,
@@ -191,24 +193,41 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     }
   }
 }
+/*
+    应用程序想关闭连接,但是有可能处于发送数据的过程中, output buffer 中有数据还没发完, 不能
+    直接调用close()   
 
+    conn->send(buff) 
+    conn->shutdown()
+
+    不可以跨线程 调用
+*/
 void TcpConnection::shutdown()
 {
   // FIXME: use compare and swap
   if (state_ == kConnected)
   {
+    //将连接状态更改为 kDisconnecting ,并没有断开连接
     setState(kDisconnecting);
     // FIXME: shared_from_this()?
     loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this));
   }
 }
+ /*
+    服务器端主动断开与客户端的连接
+    这意味和 客户端 read 返回为 0 
+     客户端 调用  close(conn); 
+    此时 服务器端收到 POLLHUP | POLLIN
 
+*/
 void TcpConnection::shutdownInLoop()
 {
   loop_->assertInLoopThread();
+  // 还在关注 POLLOUT 事件, 就代表 channel 处于 iswriting
   if (!channel_->isWriting())
   {
     // we are not writing
+    // 关闭写的这一半
     socket_->shutdownWrite();
   }
 }
@@ -321,6 +340,7 @@ void TcpConnection::stopReadInLoop()
   }
 }
 
+//建立连接
 void TcpConnection::connectEstablished()
 {
   loop_->assertInLoopThread();
@@ -333,13 +353,14 @@ void TcpConnection::connectEstablished()
 
   //关注可读事件  --TcpConnection 所对应的通道加入到Poller 关注
   channel_->enableReading();
-
+//用户的回调函数
   connectionCallback_(shared_from_this());
 }
 
 void TcpConnection::connectDestroyed()
 {
   loop_->assertInLoopThread();
+
   if (state_ == kConnected)
   {
     setState(kDisconnected);
@@ -350,10 +371,12 @@ void TcpConnection::connectDestroyed()
   channel_->remove();
 }
 
+//触发 可读事件, 由 handleEvent 调用
 void TcpConnection::handleRead(Timestamp receiveTime)
 {
   loop_->assertInLoopThread();
   int savedErrno = 0;
+  //读通道,将数据读到 缓存区中 ,然后回调 messageCallback
   ssize_t n = inputBuffer_.readFd(channel_->fd(), &savedErrno);
   if (n > 0)
   {                                    //把当前对象的裸指针,会把当前Tcp对象转换为 shared_ptr
@@ -411,6 +434,7 @@ void TcpConnection::handleWrite()
   }
 }
 
+//关闭连接
 void TcpConnection::handleClose()
 {
   loop_->assertInLoopThread();
@@ -418,10 +442,12 @@ void TcpConnection::handleClose()
   assert(state_ == kConnected || state_ == kDisconnecting);
   // we don't close fd, leave it to dtor, so we can find leaks easily.
   setState(kDisconnected);
+ //注销所有事件
   channel_->disableAll();
 
   TcpConnectionPtr guardThis(shared_from_this());
-  connectionCallback_(guardThis);
+  //回调用户函数
+  connectionCallback_(guardThis); //调用 TcpServer::removeConnection
   // must be the last line
   closeCallback_(guardThis);
 }
