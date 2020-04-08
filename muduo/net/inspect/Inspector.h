@@ -28,6 +28,8 @@ class SystemInspector;
 
 // An internal inspector of the running process, usually a singleton.
 // Better to run in a seperated thread, as some method may block for seconds
+
+//包含了 一个 httpserver 对象
 class Inspector : noncopyable
 {
  public:
@@ -53,6 +55,8 @@ class Inspector : noncopyable
   void onRequest(const HttpRequest& req, HttpResponse* resp);
 
   HttpServer server_;
+   //暴露的接口有 procseeInspector  管理:wq
+
   std::unique_ptr<ProcessInspector> processInspector_;
   std::unique_ptr<PerformanceInspector> performanceInspector_;
   std::unique_ptr<SystemInspector> systemInspector_;

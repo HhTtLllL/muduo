@@ -29,6 +29,7 @@ void DaytimeServer::onConnection(const TcpConnectionPtr& conn)
   if (conn->connected())
   {
     conn->send(Timestamp::now().toFormattedString() + "\n");
+    // 半关闭, 只关闭写的一端
     conn->shutdown();
   }
 }

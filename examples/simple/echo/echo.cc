@@ -23,7 +23,7 @@ void EchoServer::start()
 {
   server_.start();
 }
-
+//  onConnection  连接建立和断开 ,, 用 connected 判断 建立 还是断开
 void EchoServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
 {
   LOG_INFO << "EchoServer - " << conn->peerAddress().toIpPort() << " -> "
@@ -35,6 +35,7 @@ void EchoServer::onMessage(const muduo::net::TcpConnectionPtr& conn,
                            muduo::net::Buffer* buf,
                            muduo::Timestamp time)
 {
+  // 把消息从缓冲区中取回, 保存在 msg 中
   muduo::string msg(buf->retrieveAllAsString());
   LOG_INFO << conn->name() << " echo " << msg.size() << " bytes, "
            << "data received at " << time.toString();

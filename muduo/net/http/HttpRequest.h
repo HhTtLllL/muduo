@@ -23,14 +23,16 @@ namespace muduo
 {
 namespace net
 {
-
+//http请求类的封装
 class HttpRequest : public muduo::copyable
 {
  public:
   enum Method
   {
+    //kInvaild   无效的方法, 其他为 当前支持的方法
     kInvalid, kGet, kPost, kHead, kPut, kDelete
   };
+  //http 协议版本
   enum Version
   {
     kUnknown, kHttp10, kHttp11
@@ -41,15 +43,16 @@ class HttpRequest : public muduo::copyable
       version_(kUnknown)
   {
   }
-
+// 设置请求版本
   void setVersion(Version v)
   {
     version_ = v;
   }
-
+//  获取请求版本
   Version getVersion() const
   { return version_; }
-
+ 
+ //设置方法
   bool setMethod(const char* start, const char* end)
   {
     assert(method_ == kInvalid);
@@ -84,6 +87,8 @@ class HttpRequest : public muduo::copyable
   Method method() const
   { return method_; }
 
+
+//返回 请求放阿飞
   const char* methodString() const
   {
     const char* result = "UNKNOWN";
@@ -109,12 +114,12 @@ class HttpRequest : public muduo::copyable
     }
     return result;
   }
-
+// 设置路径
   void setPath(const char* start, const char* end)
   {
     path_.assign(start, end);
   }
-
+//返回路径
   const string& path() const
   { return path_; }
 
@@ -126,21 +131,24 @@ class HttpRequest : public muduo::copyable
   const string& query() const
   { return query_; }
 
+//设置接受时间
   void setReceiveTime(Timestamp t)
   { receiveTime_ = t; }
-
+  //返回接受时间
   Timestamp receiveTime() const
   { return receiveTime_; }
-
+//添加一个头部信息
   void addHeader(const char* start, const char* colon, const char* end)
   {
-    string field(start, colon);
+    string field(start, colon);  //header 域
     ++colon;
+    //取出左空格
     while (colon < end && isspace(*colon))
     {
       ++colon;
     }
-    string value(colon, end);
+    string value(colon, end);   //header 值
+    //取出右空格
     while (!value.empty() && isspace(value[value.size()-1]))
     {
       value.resize(value.size()-1);
@@ -148,6 +156,7 @@ class HttpRequest : public muduo::copyable
     headers_[field] = value;
   }
 
+// 获取头部信息
   string getHeader(const string& field) const
   {
     string result;
@@ -161,7 +170,7 @@ class HttpRequest : public muduo::copyable
 
   const std::map<string, string>& headers() const
   { return headers_; }
-
+//  交换数据成员
   void swap(HttpRequest& that)
   {
     std::swap(method_, that.method_);
@@ -173,12 +182,12 @@ class HttpRequest : public muduo::copyable
   }
 
  private:
-  Method method_;
-  Version version_;
-  string path_;
-  string query_;
-  Timestamp receiveTime_;
-  std::map<string, string> headers_;
+  Method method_;   //请求方法
+  Version version_;    //协议版本 1.0/1.1
+  string path_;               //请求路径
+  string query_;                    
+  Timestamp receiveTime_;    //请求时间 
+  std::map<string, string> headers_;   //header 列表
 };
 
 }  // namespace net

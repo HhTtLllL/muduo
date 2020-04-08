@@ -17,17 +17,17 @@ bool HttpContext::processRequestLine(const char* begin, const char* end)
 {
   bool succeed = false;
   const char* start = begin;
-  const char* space = std::find(start, end, ' ');
-  if (space != end && request_.setMethod(start, space))
+  const char* space = std::find(start, end, ' ');  //查找空格所在位置
+  if (space != end && request_.setMethod(start, space))  //解析请求方法
   {
     start = space+1;
-    space = std::find(start, end, ' ');
+    space = std::find(start, end, ' ');  
     if (space != end)
     {
-      const char* question = std::find(start, space, '?');
+      const char* question = std::find(start, space, '?');  
       if (question != space)
       {
-        request_.setPath(start, question);
+        request_.setPath(start, question);  //解析路径
         request_.setQuery(question, space);
       }
       else
@@ -57,23 +57,26 @@ bool HttpContext::processRequestLine(const char* begin, const char* end)
 }
 
 // return false if any error
+// 解析请求
 bool HttpContext::parseRequest(Buffer* buf, Timestamp receiveTime)
 {
   bool ok = true;
   bool hasMore = true;
+
+  //这里相当于是一个状态机
   while (hasMore)
   {
-    if (state_ == kExpectRequestLine)
+    if (state_ == kExpectRequestLine)   //处于解析请求行状态
     {
       const char* crlf = buf->findCRLF();
       if (crlf)
       {
-        ok = processRequestLine(buf->peek(), crlf);
+        ok = processRequestLine(buf->peek(), crlf);   //解析请求行
         if (ok)
         {
-          request_.setReceiveTime(receiveTime);
-          buf->retrieveUntil(crlf + 2);
-          state_ = kExpectHeaders;
+          request_.setReceiveTime(receiveTime);   //设置请求事件
+          buf->retrieveUntil(crlf + 2);   //将请求行从buf 中取回 包括 \r\n
+          state_ = kExpectHeaders;   //httpContext 将状态改为 kExpectHeaders
         }
         else
         {
@@ -85,12 +88,12 @@ bool HttpContext::parseRequest(Buffer* buf, Timestamp receiveTime)
         hasMore = false;
       }
     }
-    else if (state_ == kExpectHeaders)
+    else if (state_ == kExpectHeaders)  //解析header 
     {
       const char* crlf = buf->findCRLF();
       if (crlf)
       {
-        const char* colon = std::find(buf->peek(), crlf, ':');
+        const char* colon = std::find(buf->peek(), crlf, ':');  //查找 冒号 所在位置
         if (colon != crlf)
         {
           request_.addHeader(buf->peek(), colon, crlf);
@@ -99,17 +102,17 @@ bool HttpContext::parseRequest(Buffer* buf, Timestamp receiveTime)
         {
           // empty line, end of header
           // FIXME:
-          state_ = kGotAll;
+          state_ = kGotAll;  // httpContext 将状态改为 kGotAll
           hasMore = false;
         }
-        buf->retrieveUntil(crlf + 2);
+        buf->retrieveUntil(crlf + 2);  //将header 从buf 中取回, 包括\r\n
       }
       else
       {
         hasMore = false;
       }
     }
-    else if (state_ == kExpectBody)
+    else if (state_ == kExpectBody)  //当前还不支持请求中 带 body
     {
       // FIXME:
     }

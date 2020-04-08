@@ -14,10 +14,11 @@
 
 using namespace muduo;
 using namespace muduo::net;
-
+//http 响应类封装
 void HttpResponse::appendToBuffer(Buffer* output) const
 {
   char buf[32];
+  //添加相应头
   snprintf(buf, sizeof buf, "HTTP/1.1 %d ", statusCode_);
   output->append(buf);
   output->append(statusMessage_);
@@ -25,15 +26,18 @@ void HttpResponse::appendToBuffer(Buffer* output) const
 
   if (closeConnection_)
   {
+    //如果是短连接,不需要告诉游览器 Content-length ,游览器也能正确处理
+   // 短连接 不存在 粘包问题
     output->append("Connection: close\r\n");
   }
   else
   {
+    //实体的长度
     snprintf(buf, sizeof buf, "Content-Length: %zd\r\n", body_.size());
     output->append(buf);
     output->append("Connection: Keep-Alive\r\n");
   }
-
+//header 列表
   for (const auto& header : headers_)
   {
     output->append(header.first);
@@ -41,7 +45,7 @@ void HttpResponse::appendToBuffer(Buffer* output) const
     output->append(header.second);
     output->append("\r\n");
   }
-
-  output->append("\r\n");
+// 头部和 实体 部分应该有一个空行
+  output->append("\r\n");   //header  与 body 之间的空行
   output->append(body_);
 }

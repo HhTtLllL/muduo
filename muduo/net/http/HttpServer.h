@@ -25,6 +25,7 @@ class HttpResponse;
 /// It is not a fully HTTP 1.1 compliant server, but provides minimum features
 /// that can communicate with HttpClient and Web browser.
 /// It is synchronous, just like Java Servlet.
+// http 服务器类封装
 class HttpServer : noncopyable
 {
  public:
@@ -58,8 +59,11 @@ class HttpServer : noncopyable
                  Timestamp receiveTime);
   void onRequest(const TcpConnectionPtr&, const HttpRequest&);
 
-  TcpServer server_;
-  HttpCallback httpCallback_;
+// 在应用层使用 http  协议, 在传输层使用Tcp   协议
+  TcpServer server_; 
+
+  //当接收到一个 http 请求, 回调 onMessage , onMessage 回调 onRequest , onRequest 回调 httpCallback
+  HttpCallback httpCallback_;  //在处理http 请求(即调用onRequest) 的过程中回调此函数,对请求进行具体处理
 };
 
 }  // namespace net

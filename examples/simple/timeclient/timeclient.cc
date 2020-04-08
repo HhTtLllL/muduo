@@ -52,9 +52,9 @@ class TimeClient : noncopyable
   {
     if (buf->readableBytes() >= sizeof(int32_t))
     {
-      const void* data = buf->peek();
+      const void* data = buf->peek();  //获取头指针
       int32_t be32 = *static_cast<const int32_t*>(data);
-      buf->retrieve(sizeof(int32_t));
+      buf->retrieve(sizeof(int32_t));  //从缓冲区取出数据
       time_t time = sockets::networkToHost32(be32);
       Timestamp ts(implicit_cast<uint64_t>(time) * Timestamp::kMicroSecondsPerSecond);
       LOG_INFO << "Server time = " << time << ", " << ts.toFormattedString();

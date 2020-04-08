@@ -38,7 +38,7 @@ void DiscardServer::onMessage(const TcpConnectionPtr& conn,
                               Buffer* buf,
                               Timestamp time)
 {
-  string msg(buf->retrieveAllAsString());
+  string msg(buf->retrieveAllAsString());   //接受不做任何处理
   LOG_INFO << conn->name() << " discards " << msg.size()
            << " bytes received at " << time.toString();
 }

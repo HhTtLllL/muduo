@@ -21,10 +21,17 @@ namespace net
 {
 
 class Buffer;
-
+// http 协议解析类
 class HttpContext : public muduo::copyable
 {
  public:
+ //正在处于 那个状态 
+ /*
+    1. 正在处于解析请求行状态
+    2. 正在处于解析请求头状态
+    3. 状态处于解析 实体状态
+    4.全部解析完毕
+ */
   enum HttpRequestParseState
   {
     kExpectRequestLine,
@@ -34,7 +41,7 @@ class HttpContext : public muduo::copyable
   };
 
   HttpContext()
-    : state_(kExpectRequestLine)
+    : state_(kExpectRequestLine)  //初始状态
   {
   }
 
@@ -45,7 +52,7 @@ class HttpContext : public muduo::copyable
 
   bool gotAll() const
   { return state_ == kGotAll; }
-
+ //重置 httpcontext 状态
   void reset()
   {
     state_ = kExpectRequestLine;
@@ -62,8 +69,8 @@ class HttpContext : public muduo::copyable
  private:
   bool processRequestLine(const char* begin, const char* end);
 
-  HttpRequestParseState state_;
-  HttpRequest request_;
+  HttpRequestParseState state_;  //请求解析状态
+  HttpRequest request_;   //http 请求
 };
 
 }  // namespace net

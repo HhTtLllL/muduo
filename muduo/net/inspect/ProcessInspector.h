@@ -17,7 +17,8 @@ namespace muduo
 {
 namespace net
 {
-
+ // 通过processInfo 返回进程信息:wq
+ 
 class ProcessInspector : noncopyable
 {
  public:

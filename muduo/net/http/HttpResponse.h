@@ -28,10 +28,10 @@ class HttpResponse : public muduo::copyable
   enum HttpStatusCode
   {
     kUnknown,
-    k200Ok = 200,
-    k301MovedPermanently = 301,
-    k400BadRequest = 400,
-    k404NotFound = 404,
+    k200Ok = 200,   // 成功
+    k301MovedPermanently = 301,  // 301 重定向,请求的页面永久性移植至另一个地址
+    k400BadRequest = 400,   //错误的请求,语法格式有错,服务器无法处理此请求
+    k404NotFound = 404,   //  请求的网页不存在
   };
 
   explicit HttpResponse(bool close)
@@ -39,19 +39,22 @@ class HttpResponse : public muduo::copyable
       closeConnection_(close)
   {
   }
-
+ // 设置状态吗
   void setStatusCode(HttpStatusCode code)
   { statusCode_ = code; }
 
+//设置状态响应码对应的文本信息
   void setStatusMessage(const string& message)
   { statusMessage_ = message; }
 
+// 设置关闭连接
   void setCloseConnection(bool on)
   { closeConnection_ = on; }
-
+// 关闭连接
   bool closeConnection() const
   { return closeConnection_; }
 
+//设置文档每日类型(MIME)
   void setContentType(const string& contentType)
   { addHeader("Content-Type", contentType); }
 
@@ -62,15 +65,16 @@ class HttpResponse : public muduo::copyable
   void setBody(const string& body)
   { body_ = body; }
 
+//将 HttpResponse添加到buffer ,以便于发送给客户端
   void appendToBuffer(Buffer* output) const;
 
  private:
-  std::map<string, string> headers_;
-  HttpStatusCode statusCode_;
-  // FIXME: add http version
-  string statusMessage_;
-  bool closeConnection_;
-  string body_;
+  std::map<string, string> headers_;  //header 列表
+  HttpStatusCode statusCode_;        //状态响应码
+  // FIXME: add http version  
+  string statusMessage_;     //状态响应码对应的文本信息
+  bool closeConnection_;    //是否关闭连接
+  string body_;   //实体
 };
 
 }  // namespace net

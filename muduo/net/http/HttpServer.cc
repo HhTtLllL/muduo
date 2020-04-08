@@ -47,19 +47,19 @@ HttpServer::HttpServer(EventLoop* loop,
   server_.setMessageCallback(
       std::bind(&HttpServer::onMessage, this, _1, _2, _3));
 }
-
+ //启动
 void HttpServer::start()
 {
   LOG_WARN << "HttpServer[" << server_.name()
     << "] starts listenning on " << server_.ipPort();
   server_.start();
 }
-
+// 当有一个 http 连接到来的时候
 void HttpServer::onConnection(const TcpConnectionPtr& conn)
 {
   if (conn->connected())
   {
-    conn->setContext(HttpContext());
+    conn->setContext(HttpContext()); //TcpConnection 与一个HttpContext 绑定
   }
 }
 
@@ -67,8 +67,10 @@ void HttpServer::onMessage(const TcpConnectionPtr& conn,
                            Buffer* buf,
                            Timestamp receiveTime)
 {
+  //先取出 http 的上下文
   HttpContext* context = boost::any_cast<HttpContext>(conn->getMutableContext());
 
+//解析请求
   if (!context->parseRequest(buf, receiveTime))
   {
     conn->send("HTTP/1.1 400 Bad Request\r\n\r\n");
@@ -78,7 +80,7 @@ void HttpServer::onMessage(const TcpConnectionPtr& conn,
   if (context->gotAll())
   {
     onRequest(conn, context->request());
-    context->reset();
+    context->reset();  //本次请求处理完毕, 重置 httpContext ,适用于长连接
   }
 }
 

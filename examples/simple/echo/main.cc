@@ -17,7 +17,7 @@ int main()
   
   EchoServer server(&loop, listenAddr);
   server.start();
-  loop.loop();   //在这里不断捕捉事件,一旦有事件到来就回调 Echoserver 中相应的函数:wq
+  loop.loop();   //在这里不断捕捉事件,一旦有事件到来就回调 Echoserver 中相应的函数
 
 }
 
