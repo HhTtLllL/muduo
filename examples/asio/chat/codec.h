@@ -17,16 +17,17 @@ class LengthHeaderCodec : muduo::noncopyable
     : messageCallback_(cb)
   {
   }
-
+// 解析消息
   void onMessage(const muduo::net::TcpConnectionPtr& conn,
                  muduo::net::Buffer* buf,
                  muduo::Timestamp receiveTime)
   {
+    //这里用 while  不用if     因为这里可能接受的不是一条消息
     while (buf->readableBytes() >= kHeaderLen) // kHeaderLen == 4
     {
       // FIXME: use Buffer::peekInt32()
       const void* data = buf->peek();
-      int32_t be32 = *static_cast<const int32_t*>(data); // SIGBUS
+      int32_t be32 = *static_cast<const int32_t*>(data); // SIGBUS 转换前四个字节
       const int32_t len = muduo::net::sockets::networkToHost32(be32);
       if (len > 65536 || len < 0)
       {
@@ -34,10 +35,10 @@ class LengthHeaderCodec : muduo::noncopyable
         conn->shutdown();  // FIXME: disable reading
         break;
       }
-      else if (buf->readableBytes() >= len + kHeaderLen)
+      else if (buf->readableBytes() >= len + kHeaderLen)  //当有一条完整的消息 回调 onmessage
       {
-        buf->retrieve(kHeaderLen);
-        muduo::string message(buf->peek(), len);
+        buf->retrieve(kHeaderLen);  //接受 包头
+        muduo::string message(buf->peek(), len);   //接受包体
         messageCallback_(conn, message, receiveTime);
         buf->retrieve(len);
       }

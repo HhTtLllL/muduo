@@ -31,7 +31,15 @@ void onConnection(const TcpConnectionPtr& conn)
     FILE* fp = ::fopen(g_file, "rb");
     if (fp)
     {
+      //这里为什么有两个参数???
+      /*
+          当这个智能指针的引用计数减为0 的时候,要销毁这个指针指向的数据时,调用 fclose
+          如果没有这个参数,则默认调用 delete,进而调用这个类的析构函数
+      */
       FilePtr ctx(fp, ::fclose);
+      
+      //这一个智能指针和 一个TcpConnection 绑定
+      // 当这个 TcpConnection 销毁的时候, 引用计数减为 0,
       conn->setContext(ctx);
       char buf[kBufSize];
       size_t nread = ::fread(buf, 1, sizeof buf, fp);

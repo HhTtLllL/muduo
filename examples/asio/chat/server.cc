@@ -22,7 +22,8 @@ class ChatServer : noncopyable
   {
     server_.setConnectionCallback(
         std::bind(&ChatServer::onConnection, this, _1));
-    server_.setMessageCallback(
+    server_.setMessageCallback( 
+      //当消息到来的时候. 回调 LengthHeaderCodec
         std::bind(&LengthHeaderCodec::onMessage, &codec_, _1, _2, _3));
   }
 
@@ -60,10 +61,10 @@ class ChatServer : noncopyable
     }
   }
 
-  typedef std::set<TcpConnectionPtr> ConnectionList;
+  typedef std::set<TcpConnectionPtr> ConnectionList;  
   TcpServer server_;
-  LengthHeaderCodec codec_;
-  ConnectionList connections_;
+  LengthHeaderCodec codec_;   //消息编解码
+  ConnectionList connections_;   //连接列表
 };
 
 int main(int argc, char* argv[])
@@ -72,7 +73,7 @@ int main(int argc, char* argv[])
   if (argc > 1)
   {
     EventLoop loop;
-    uint16_t port = static_cast<uint16_t>(atoi(argv[1]));
+    uint16_t port = static_cast<uint16_t>(atoi(argv[1]));  //解析端口号
     InetAddress serverAddr(port);
     ChatServer server(&loop, serverAddr);
     server.start();

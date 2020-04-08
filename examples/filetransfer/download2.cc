@@ -30,7 +30,13 @@ void onConnection(const TcpConnectionPtr& conn)
     FILE* fp = ::fopen(g_file, "rb");
     if (fp)
     {
-      conn->setContext(fp);
+      conn->setContext(fp); 
+/*  
+    将TcpConnection 对象与fp绑定 , 通过这个TcpConnection 可以获取 fp指针
+    通过这种方法,我们就不需要额外再用一个map容器来管理这种关系
+
+*/
+
       char buf[kBufSize];
       size_t nread = ::fread(buf, 1, sizeof buf, fp);
       conn->send(buf, static_cast<int>(nread));

@@ -15,6 +15,7 @@
 using namespace muduo;
 using namespace muduo::net;
 
+//  reactor模型    只有一个IO线程, 这个IO 线程 即负责监听套接字, 也负责已连接套接字
 class SudokuServer
 {
  public:
@@ -84,7 +85,7 @@ class SudokuServer
     string::const_iterator colon = find(request.begin(), request.end(), ':');
     if (colon != request.end())
     {
-      id.assign(request.begin(), colon);
+      id.assign(request.begin(), colon); //取出ID
       puzzle.assign(colon+1, request.end());
     }
     else

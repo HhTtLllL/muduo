@@ -19,7 +19,7 @@ string readFile(const char* filename)
   {
     // inefficient!!!
     const int kBufSize = 1024*1024;
-    char iobuf[kBufSize];
+    char iobuf[kBufSize];  //设置文件缓冲区
     ::setbuffer(fp, iobuf, sizeof iobuf);
 
     char buf[kBufSize];
@@ -47,9 +47,11 @@ void onConnection(const TcpConnectionPtr& conn)
   {
     LOG_INFO << "FileServer - Sending file " << g_file
              << " to " << conn->peerAddress().toIpPort();
-    conn->setHighWaterMarkCallback(onHighWaterMark, 64*1024);
-    string fileContent = readFile(g_file);
-    conn->send(fileContent);
+    conn->setHighWaterMarkCallback(onHighWaterMark, 64*1024);  //设置高水位回调函数, 当应用层的发送缓冲区 超出了 64k,就会回调 
+    string fileContent = readFile(g_file); //从g_file 中读取内容 保存到 fileContent 中
+    conn->send(fileContent); //send 函数是非阻塞的,立刻返回,不担心数据什么时候给对等端,这个有muduo网络库负责到底
+    //当fileContent比较大的时候,是没有办法一次将数据拷到内核缓冲区的,这时候,会将剩余的数据拷贝到应用层的发送缓冲区
+    //即 output buffer中, 当内核缓冲区中的数据发送出去之后,可写事件产生,muduo就会从outputbuffer中 取出数据发送
     conn->shutdown();
     LOG_INFO << "FileServer - done";
   }

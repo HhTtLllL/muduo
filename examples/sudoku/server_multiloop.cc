@@ -15,6 +15,7 @@
 using namespace muduo;
 using namespace muduo::net;
 
+// multiple reactor  (多个IO 线程)
 class SudokuServer
 {
  public:
@@ -27,7 +28,7 @@ class SudokuServer
         std::bind(&SudokuServer::onConnection, this, _1));
     server_.setMessageCallback(
         std::bind(&SudokuServer::onMessage, this, _1, _2, _3));
-    server_.setThreadNum(numThreads);
+    server_.setThreadNum(numThreads);  //设置 IO 线程的个数
   }
 
   void start()
@@ -124,7 +125,7 @@ int main(int argc, char* argv[])
   int numThreads = 0;
   if (argc > 1)
   {
-    numThreads = atoi(argv[1]);
+    numThreads = atoi(argv[1]);  //IO 线程的数目
   }
   EventLoop loop;
   InetAddress listenAddr(9981);

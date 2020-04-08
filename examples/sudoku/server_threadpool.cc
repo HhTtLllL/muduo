@@ -15,7 +15,7 @@
 
 using namespace muduo;
 using namespace muduo::net;
-
+//  一个IO 线程 +  计算线程池
 class SudokuServer
 {
  public:
@@ -76,7 +76,7 @@ class SudokuServer
       }
     }
   }
-
+// 并不直接调用数独求解的函数, 而是通过线程池来运行
   bool processRequest(const TcpConnectionPtr& conn, const string& request)
   {
     string id;
@@ -113,7 +113,7 @@ class SudokuServer
     string result = solveSudoku(puzzle);
     if (id.empty())
     {
-      conn->send(result+"\r\n");
+      conn->send(result+"\r\n"); // 通过TCP 所属的 IO 线程发送,而不是计算线程池发送的
     }
     else
     {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
   int numThreads = 0;
   if (argc > 1)
   {
-    numThreads = atoi(argv[1]);
+    numThreads = atoi(argv[1]);  //计算线程池的线程个数
   }
   EventLoop loop;
   InetAddress listenAddr(9981);

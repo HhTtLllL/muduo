@@ -26,6 +26,7 @@ ChargenServer::ChargenServer(EventLoop* loop,
     loop->runEvery(3.0, std::bind(&ChargenServer::printThroughput, this));
   }
 
+//生成数据
   string line;
   for (int i = 33; i < 127; ++i)
   {
@@ -51,6 +52,7 @@ void ChargenServer::onConnection(const TcpConnectionPtr& conn)
            << (conn->connected() ? "UP" : "DOWN");
   if (conn->connected())
   {
+    //为了测试服务器的吞吐量, 所以这里不需要等待,非延迟
     conn->setTcpNoDelay(true);
     conn->send(message_);
   }
@@ -68,9 +70,11 @@ void ChargenServer::onMessage(const TcpConnectionPtr& conn,
 void ChargenServer::onWriteComplete(const TcpConnectionPtr& conn)
 {
   transferred_ += message_.size();
+  //再次发送数据
   conn->send(message_);
 }
 
+//每个 3 秒 打印一下吞吐量 
 void ChargenServer::printThroughput()
 {
   Timestamp endTime = Timestamp::now();
