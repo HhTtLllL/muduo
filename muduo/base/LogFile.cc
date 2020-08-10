@@ -50,7 +50,7 @@ void LogFile::append(const char* logline, int len)
 
 void LogFile::flush()
 {
-  if (mutex_)
+  if (mutex_)   //如果是线程安全的
   {
     MutexLockGuard lock(*mutex_);
     file_->flush();
@@ -94,6 +94,8 @@ bool LogFile::rollFile()
 {
   time_t now = 0;
   string filename = getLogFileName(basename_, &now);
+  //注意，这里先 除 kRpollPerSeconds 后 乘 KRoolPerSecond 表
+  //对齐 至 KRolllPerSconds 整数倍，也就是时间调整到当天零点
   time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
 
   if (now > lastRoll_)
@@ -110,20 +112,21 @@ bool LogFile::rollFile()
 string LogFile::getLogFileName(const string& basename, time_t* now)
 {
   string filename;
-  filename.reserve(basename.size() + 64);
+  filename.reserve(basename.size() + 64);  //保留 这么多字节的长度
   filename = basename;
 
   char timebuf[32];
   struct tm tm;
   *now = time(NULL);
   gmtime_r(now, &tm); // FIXME: localtime_r ?
-  strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
+  strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm); //时间
   filename += timebuf;
 
-  filename += ProcessInfo::hostname();
+  filename += ProcessInfo::hostname(); //主机名称
+
 
   char pidbuf[32];
-  snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
+  snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());  //进程号
   filename += pidbuf;
 
   filename += ".log";

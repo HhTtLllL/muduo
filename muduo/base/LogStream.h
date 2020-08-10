@@ -39,7 +39,7 @@ class FixedBuffer : noncopyable
   void append(const char* /*restrict*/ buf, size_t len)
   {
     // FIXME: append partially
-    if (implicit_cast<size_t>(avail()) > len)
+    if (implicit_cast<size_t>(avail()) > len) //如果当前可用的空间大于 len ，就将数据加入进去
     {
       memcpy(cur_, buf, len);
       cur_ += len;
@@ -51,7 +51,7 @@ class FixedBuffer : noncopyable
 
   // write to data_ directly
   char* current() { return cur_; }
-  int avail() const { return static_cast<int>(end() - cur_); }
+  int avail() const { return static_cast<int>(end() - cur_); }  //当前可用空间
   void add(size_t len) { cur_ += len; }
 
   void reset() { cur_ = data_; }
@@ -70,9 +70,9 @@ class FixedBuffer : noncopyable
   static void cookieStart();
   static void cookieEnd();
 
-  void (*cookie_)();
-  char data_[SIZE];
-  char* cur_;
+  void (*cookie_)();  //函数指针
+  char data_[SIZE];  //缓冲区的容量
+  char* cur_;  //当前可用空间的地址
 };
 
 }  // namespace detail

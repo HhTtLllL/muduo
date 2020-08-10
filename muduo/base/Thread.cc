@@ -83,6 +83,7 @@ struct ThreadData
     //获取线程的tid
     *tid_ = muduo::CurrentThread::tid();
     tid_ = NULL;
+
     latch_->countDown();
     latch_ = NULL;
 //将线程名称缓存起来
@@ -119,7 +120,7 @@ struct ThreadData
 void* startThread(void* obj)
 {
   
-  //断言 判断
+  //类型转换
   ThreadData* data = static_cast<ThreadData*>(obj);
   
   data->runInThread();

@@ -19,6 +19,7 @@ namespace FileUtil
 class AppendFile;
 }
 
+//日志滚动类
 class LogFile : noncopyable
 {
  public:
@@ -39,19 +40,19 @@ class LogFile : noncopyable
   static string getLogFileName(const string& basename, time_t* now);
 
   const string basename_;
-  const off_t rollSize_;
-  const int flushInterval_;
+  const off_t rollSize_;    //日志文件写满 roolsize 就换个文件写a
+  const int flushInterval_;  //日志文件写入的间隔 时间
   const int checkEveryN_;
 
   int count_;
 
   std::unique_ptr<MutexLock> mutex_;
-  time_t startOfPeriod_;
-  time_t lastRoll_;
-  time_t lastFlush_;
+  time_t startOfPeriod_;  //开始记录日志时间 （调整至零点的时间）
+  time_t lastRoll_;       //上一次滚动日志文件时间
+  time_t lastFlush_;  //上一次日志 写入文件时间 
   std::unique_ptr<FileUtil::AppendFile> file_;
 
-  const static int kRollPerSeconds_ = 60*60*24;
+  const static int kRollPerSeconds_ = 60*60*24; //一天 滚动一次
 };
 
 }  // namespace muduo
